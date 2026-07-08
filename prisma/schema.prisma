@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+
+}
+
+enum Role {
+  ADMIN
+  DIRECTOR
+  SERVICE_ADVISOR
+  TECHNICIAN
+}
+
+model Workshop {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  workshopId   String
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         Role
+  kpiTitle     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  workshop        Workshop         @relation(fields: [workshopId], references: [id])
+  refreshTokens   RefreshToken[]
+  userPermissions UserPermission[]
+
+  @@index([workshopId])
+  @@index([email])
+  @@index([role])
+}
+
+model Permission {
+  id    String @id @default(cuid())
+  code  String @unique
+  label String
+
+  userPermissions UserPermission[]
+}
+
+model UserPermission {
+  id           String  @id @default(cuid())
+  userId       String
+  permissionId String
+  granted      Boolean @default(true)
+
+  user       User       @relation(fields: [userId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([userId, permissionId])
+  @@index([userId])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  familyId  String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([familyId])
+  @@index([tokenHash])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  workshopId String
+  entityType String
+  entityId   String
+  action     String
+  actorId    String
+  before     Json?
+  after      Json?
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
+  @@index([workshopId, createdAt])
+  @@index([actorId])
+}
+
+
