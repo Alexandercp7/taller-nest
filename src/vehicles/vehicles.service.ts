@@ -1,26 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
+import { PrismaService } from '@prisma-service/prisma.service';
+import { AuditService } from '@audit/audit.service';
+import { VIN_DECODER, VinDecodeResult, VinDecoder} from './vin-decoder/vin-decoder';
 
 @Injectable()
 export class VehiclesService {
-  create(createVehicleDto: CreateVehicleDto) {
-    return 'This action adds a new vehicle';
-  }
-
-  findAll() {
-    return `This action returns all vehicles`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} vehicle`;
-  }
-
-  update(id: number, updateVehicleDto: UpdateVehicleDto) {
-    return `This action updates a #${id} vehicle`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} vehicle`;
-  }
+  constructor(private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    private readonly clients: ClientsService,
+    @Inject(VIN_DECODER) private readonly vinDecoder: VinDecoder,
+  ){}
 }
