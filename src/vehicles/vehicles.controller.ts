@@ -19,6 +19,7 @@ import { CurrentUser } from '@common/decorators/current-user.decorator';
 import { RequestUser } from '@common/types/request-user.type';
 import { VehicleDto } from './dto/vehicle.dto';
 import { ListVehiclesQueryDto } from './dto/list-vehicle-query.dto';
+import { VinDecodeResult } from './vin-decoder/vin-decoder';
 
 @Controller('vehicles')
 export class VehiclesController {

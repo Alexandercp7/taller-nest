@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { VehiclesModule } from './vehicles/vehicles.module';
+import { ClientsModule } from './clients/clients.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { VehiclesModule } from './vehicles/vehicles.module';
     UserModule,
     AuthModule,
     VehiclesModule,
+    ClientsModule,
   ],
   controllers: [],
   providers: [
