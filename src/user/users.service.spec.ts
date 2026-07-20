@@ -41,6 +41,7 @@ describe('UsersService', () => {
     userPermission: {
       upsert: jest.fn(),
     },
+    $transaction: jest.fn((cb: (tx: unknown) => unknown) => cb(prisma)),
   } as unknown as PrismaService;
 
   const audit = { log: jest.fn() } as unknown as AuditService;
@@ -285,7 +286,7 @@ describe('UsersService', () => {
           before: { isActive: true },
           after: { isActive: false },
         }),
-        undefined,
+        expect.anything(),
       );
     });
 

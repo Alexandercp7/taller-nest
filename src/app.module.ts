@@ -8,6 +8,8 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { ClientsModule } from './clients/clients.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { SuppliersModule } from './suppliers/suppliers.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { ClientsModule } from './clients/clients.module';
     AuthModule,
     VehiclesModule,
     ClientsModule,
+    InventoryModule,
+    SuppliersModule,
   ],
   controllers: [],
   providers: [

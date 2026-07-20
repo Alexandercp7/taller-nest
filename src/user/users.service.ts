@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
-import * as argon2 from 'argon2';
+import argon2 from 'argon2';
 import { AuditService } from '../audit/audit.service';
 import {
   ForbiddenActionException,
@@ -237,14 +237,21 @@ export class UsersService {
         'Solo ADMIN puede desactivar usuarios.',
       );
 
-    const db = tx ?? this.prisma;
+    if (tx) return this.doDeactivate(id, actor, tx);
+    return this.prisma.$transaction((trx) => this.doDeactivate(id, actor, trx));
+  }
 
-    const user = await db.user.findUnique({ where: { id } });
+  private async doDeactivate(
+    id: string,
+    actor: RequestUser,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const user = await tx.user.findUnique({ where: { id } });
     if (!user || user.workshopId !== actor.workshopId)
       throw new NotFoundException();
 
     if (user.role === Role.ADMIN) {
-      const activeAdminCount = await db.user.count({
+      const activeAdminCount = await tx.user.count({
         where: {
           workshopId: actor.workshopId,
           role: Role.ADMIN,
@@ -254,8 +261,8 @@ export class UsersService {
       if (activeAdminCount <= 1) throw new LastAdminException();
     }
 
-    await db.user.update({ where: { id }, data: { isActive: false } });
-    await db.refreshToken.updateMany({
+    await tx.user.update({ where: { id }, data: { isActive: false } });
+    await tx.refreshToken.updateMany({
       where: { userId: id, revokedAt: null },
       data: { revokedAt: new Date() },
     });

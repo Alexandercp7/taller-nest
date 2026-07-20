@@ -1,0 +1,234 @@
+import { NotFoundException } from '@nestjs/common';
+import { ArticleType, StockMovementType } from '@prisma/client';
+import {
+  InsufficientStockException,
+  SalePriceNotAllowedException,
+  SalePriceRequiredException,
+} from '@common/exceptions/domain.exceptions';
+import { AuditService } from '../audit/audit.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { R2StorageService } from '@common/uploads/r2-storage.service';
+import { RequestUser } from '@common/types/request-user.type';
+import { InventoryService } from './inventory.service';
+
+describe('InventoryService', () => {
+  let service: InventoryService;
+
+  const prisma = {
+    article: {
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+    },
+    stockMovement: {
+      findMany: jest.fn(),
+      create: jest.fn(),
+    },
+  } as unknown as PrismaService;
+
+  const audit = { log: jest.fn() } as unknown as AuditService;
+  const storage = {
+    upload: jest.fn(),
+    delete: jest.fn(),
+  } as unknown as R2StorageService;
+
+  const actor: RequestUser = {
+    id: 'actor-1',
+    workshopId: 'workshop-1',
+    role: 'ADMIN',
+    effectivePermissions: [],
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    service = new InventoryService(prisma, audit, storage);
+  });
+
+  describe('create', () => {
+    it('exige salePrice para CONSUMIBLE', async () => {
+      await expect(
+        service.create(
+          {
+            type: ArticleType.CONSUMIBLE,
+            name: 'Aceite',
+            condition: 'NUEVO',
+          } as never,
+          actor,
+        ),
+      ).rejects.toThrow(SalePriceRequiredException);
+      expect(prisma.article.create).not.toHaveBeenCalled();
+    });
+
+    it('rechaza salePrice para HERRAMIENTA', async () => {
+      await expect(
+        service.create(
+          {
+            type: ArticleType.HERRAMIENTA,
+            name: 'Llave',
+            condition: 'NUEVO',
+            salePrice: '100.00',
+          } as never,
+          actor,
+        ),
+      ).rejects.toThrow(SalePriceNotAllowedException);
+      expect(prisma.article.create).not.toHaveBeenCalled();
+    });
+
+    it('crea el artículo en el workshop del actor y audita ARTICLE_CREATED', async () => {
+      (prisma.article.create as jest.Mock).mockResolvedValue({
+        id: 'article-1',
+        workshopId: actor.workshopId,
+        sku: null,
+        type: ArticleType.HERRAMIENTA,
+        name: 'Llave',
+        description: null,
+        condition: 'NUEVO',
+        purchasePrice: null,
+        salePrice: null,
+        photoUrl: null,
+        stock: 0,
+        minStock: 0,
+        isActive: true,
+        createdAt: new Date(),
+      });
+
+      await service.create(
+        {
+          type: ArticleType.HERRAMIENTA,
+          name: 'Llave',
+          condition: 'NUEVO',
+        } as never,
+        actor,
+      );
+
+      expect(prisma.article.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ workshopId: actor.workshopId }),
+        }),
+      );
+      expect(audit.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'ARTICLE_CREATED' }),
+        undefined,
+      );
+    });
+  });
+
+  describe('findOneArticle', () => {
+    it('multi-tenancy: 404 si el artículo pertenece a otro workshop', async () => {
+      (prisma.article.findUnique as jest.Mock).mockResolvedValue({
+        id: 'foreign-1',
+        workshopId: 'otro-workshop',
+      });
+
+      await expect(service.findOneArticle('foreign-1', actor)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('lowStock', () => {
+    it('solo devuelve artículos activos con stock por debajo de minStock', async () => {
+      (prisma.article.findMany as jest.Mock).mockResolvedValue([
+        { id: 'a1', stock: 2, minStock: 5, workshopId: actor.workshopId },
+        { id: 'a2', stock: 10, minStock: 5, workshopId: actor.workshopId },
+      ]);
+
+      const result = await service.lowStock(actor);
+
+      expect(prisma.article.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { workshopId: actor.workshopId, isActive: true },
+        }),
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('a1');
+    });
+  });
+
+  describe('registerMovement', () => {
+    it('ENTRY suma al stock actual y deja before/after en el kardex', async () => {
+      (prisma.article.findUnique as jest.Mock).mockResolvedValue({
+        id: 'a1',
+        workshopId: actor.workshopId,
+        stock: 10,
+      });
+      (prisma.stockMovement.create as jest.Mock).mockResolvedValue({
+        id: 'm1',
+        articleId: 'a1',
+        workOrderId: null,
+        type: StockMovementType.ENTRY,
+        qty: 5,
+        before: 10,
+        after: 15,
+        reason: null,
+        actorId: actor.id,
+        createdAt: new Date(),
+      });
+
+      await service.registerMovement(
+        { articleId: 'a1', type: StockMovementType.ENTRY, qty: 5 },
+        actor,
+      );
+
+      expect(prisma.article.update).toHaveBeenCalledWith({
+        where: { id: 'a1' },
+        data: { stock: 15 },
+      });
+      expect(prisma.stockMovement.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ before: 10, after: 15 }),
+        }),
+      );
+    });
+
+    it('EXIT rechaza cantidad mayor al stock disponible (409)', async () => {
+      (prisma.article.findUnique as jest.Mock).mockResolvedValue({
+        id: 'a1',
+        workshopId: actor.workshopId,
+        stock: 3,
+      });
+
+      await expect(
+        service.registerMovement(
+          { articleId: 'a1', type: StockMovementType.EXIT, qty: 5 },
+          actor,
+        ),
+      ).rejects.toThrow(InsufficientStockException);
+      expect(prisma.article.update).not.toHaveBeenCalled();
+      expect(prisma.stockMovement.create).not.toHaveBeenCalled();
+    });
+
+    it('ADJUSTMENT fija el stock al valor absoluto observado', async () => {
+      (prisma.article.findUnique as jest.Mock).mockResolvedValue({
+        id: 'a1',
+        workshopId: actor.workshopId,
+        stock: 10,
+      });
+      (prisma.stockMovement.create as jest.Mock).mockResolvedValue({
+        id: 'm1',
+        articleId: 'a1',
+        type: StockMovementType.ADJUSTMENT,
+        qty: 7,
+        before: 10,
+        after: 7,
+        actorId: actor.id,
+        createdAt: new Date(),
+      });
+
+      await service.registerMovement(
+        {
+          articleId: 'a1',
+          type: StockMovementType.ADJUSTMENT,
+          qty: 7,
+        },
+        actor,
+      );
+
+      expect(prisma.article.update).toHaveBeenCalledWith({
+        where: { id: 'a1' },
+        data: { stock: 7 },
+      });
+    });
+  });
+});

@@ -1,5 +1,5 @@
 import { UnauthorizedException } from '@nestjs/common';
-import * as argon2 from 'argon2';
+import argon2 from 'argon2';
 import { AuthService } from './auth.service';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -26,7 +26,9 @@ describe('AuthService', () => {
       updateMany: jest.fn(),
       update: jest.fn(),
     },
-    $transaction: jest.fn(),
+    $transaction: jest.fn((arg: unknown) =>
+      typeof arg === 'function' ? arg(prisma) : undefined,
+    ),
   } as unknown as PrismaService;
 
   const tokenService = {
@@ -207,7 +209,7 @@ describe('AuthService', () => {
         'nuevo-access-token',
       );
       (prisma.user.findUniqueOrThrow as jest.Mock).mockResolvedValue(baseUser);
-      (prisma.$transaction as jest.Mock).mockResolvedValue(undefined);
+      (prisma.$transaction as jest.Mock).mockResolvedValueOnce(undefined);
 
       const result = await service.refresh(RAW);
 
@@ -289,7 +291,7 @@ describe('AuthService', () => {
           action: 'USER_PASSWORD_CHANGED',
           actorId: 'user-1',
         }),
-        undefined,
+        expect.anything(),
       );
     });
   });

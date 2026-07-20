@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
@@ -16,33 +27,42 @@ export class ClientsController {
 
   @Post()
   @RequirePermission('client:write')
-  @ApiOperation({summary:'create a new client'})
-  create(@Body() dto: CreateClientDto, @CurrentUser() actor: RequestUser): Promise<ClientDto> {
+  @ApiOperation({ summary: 'create a new client' })
+  create(
+    @Body() dto: CreateClientDto,
+    @CurrentUser() actor: RequestUser,
+  ): Promise<ClientDto> {
     return this.clientsService.create(dto, actor);
   }
 
   @Get()
   @RequirePermission('client:read')
-  @ApiOperation({summary:'list clients'})
+  @ApiOperation({ summary: 'list clients' })
   findAll(
     @Query() query: ListClientsQueryDto,
-    @CurrentUser() actor: RequestUser
+    @CurrentUser() actor: RequestUser,
   ): Promise<{ data: ClientDto[]; total: number }> {
-   return this.clientsService.findAll(query, actor);
+    return this.clientsService.findAll(query, actor);
   }
 
   @Get(':id')
   @RequirePermission('client:read')
-  @ApiOperation({summary:'get a client by id'})
-  findOne(@Param('id') id: string, @CurrentUser() actor: RequestUser) : Promise<ClientDto>{
+  @ApiOperation({ summary: 'get a client by id' })
+  findOne(
+    @Param('id') id: string,
+    @CurrentUser() actor: RequestUser,
+  ): Promise<ClientDto> {
     return this.clientsService.findOne(id, actor);
   }
 
-  
   @Patch(':id')
   @RequirePermission('client:write')
   @ApiOperation({ summary: 'Actualizar cliente' })
-  update(@Param('id') id: string, @Body() dto: UpdateClientDto, @CurrentUser() actor: RequestUser) {
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateClientDto,
+    @CurrentUser() actor: RequestUser,
+  ) {
     return this.clientsService.update(id, dto, actor);
   }
 

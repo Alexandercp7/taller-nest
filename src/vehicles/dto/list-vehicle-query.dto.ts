@@ -1,6 +1,14 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import {
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 
 const SORTABLE_FIELDS = [
   'plate:asc',
@@ -9,9 +17,8 @@ const SORTABLE_FIELDS = [
   'createdAt:desc',
 ] as const;
 
-
-export class ListVehiclesQueryDto{
- @ApiPropertyOptional({ default: 1 })
+export class ListVehiclesQueryDto {
+  @ApiPropertyOptional({ default: 1 })
   @IsInt()
   @Min(1)
   @IsOptional()

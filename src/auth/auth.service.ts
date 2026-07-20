@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import * as argon2 from 'argon2';
+import argon2 from 'argon2';
 import { randomUUID } from 'crypto';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -133,9 +133,19 @@ export class AuthService {
     dto: ChangePasswordDto,
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
-    const db = tx ?? this.prisma;
+    if (tx) return this.doChangePassword(userId, workshopId, dto, tx);
+    return this.prisma.$transaction((trx) =>
+      this.doChangePassword(userId, workshopId, dto, trx),
+    );
+  }
 
-    const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
+  private async doChangePassword(
+    userId: string,
+    workshopId: string,
+    dto: ChangePasswordDto,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
 
     const valid = await argon2.verify(user.passwordHash, dto.currentPassword);
     if (!valid)
@@ -145,11 +155,11 @@ export class AuthService {
       type: argon2.argon2id,
     });
 
-    await db.user.update({
+    await tx.user.update({
       where: { id: userId },
       data: { passwordHash: newHash },
     });
-    await db.refreshToken.updateMany({
+    await tx.refreshToken.updateMany({
       where: { userId, revokedAt: null },
       data: { revokedAt: new Date() },
     });

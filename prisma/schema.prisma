@@ -25,9 +25,16 @@ enum ClientSegment {
   ANTIGUO
 }
 
-enum PriceListItemType {
-  SERVICE
-  PART
+enum VehicleType {
+  AUTO
+  CAMIONETA
+  CAMION
+}
+
+enum ServiceCategory {
+  AFINACION_Y_OTROS
+  MECANICA_RAPIDA
+  MECANICA_GENERAL
 }
 
 enum ArticleType {
@@ -35,6 +42,13 @@ enum ArticleType {
   CONSUMIBLE
   EQUIPO
   PARTE_EN_VENTA
+}
+
+enum ArticleCondition {
+  NUEVO
+  BUENO
+  REGULAR
+  DANADO
 }
 
 enum StockMovementType {
@@ -52,10 +66,12 @@ model Workshop {
   users         User[]
   clients       Client[]
   vehicles      Vehicle[]
-  priceListItems PriceListItem[]
+  specialOrderParts SpecialOrderPart[]
   suppliers     Supplier[]
   articles      Article[]
   custodyItems  CustodyItem[]
+  services      Service[]
+  latheServices LatheService[]
 }
 
 model User {
@@ -71,9 +87,10 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  workshop        Workshop         @relation(fields: [workshopId], references: [id])
-  refreshTokens   RefreshToken[]
-  userPermissions UserPermission[]
+  workshop                Workshop         @relation(fields: [workshopId], references: [id], onDelete: Restrict)
+  refreshTokens           RefreshToken[]
+  userPermissions         UserPermission[]
+  custodyItemsResponsible CustodyItem[]
 
   @@index([workshopId])
   @@index([email])
@@ -94,8 +111,8 @@ model UserPermission {
   permissionId String
   granted      Boolean @default(true)
 
-  user       User       @relation(fields: [userId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
+  user       User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
 
   @@unique([userId, permissionId])
   @@index([userId])
@@ -110,7 +127,7 @@ model RefreshToken {
   revokedAt DateTime?
   createdAt DateTime  @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId])
   @@index([familyId])
@@ -149,7 +166,7 @@ model Client {
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 
-  workshop     Workshop      @relation(fields: [workshopId], references: [id])
+  workshop     Workshop      @relation(fields: [workshopId], references: [id], onDelete: Restrict)
   vehicles     Vehicle[]
   custodyItems CustodyItem[]
 
@@ -175,8 +192,8 @@ model Vehicle {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  workshop     Workshop      @relation(fields: [workshopId], references: [id])
-  client       Client        @relation(fields: [clientId], references: [id])
+  workshop     Workshop      @relation(fields: [workshopId], references: [id], onDelete: Restrict)
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
   custodyItems CustodyItem[]
 
   @@unique([workshopId, vin])
@@ -185,23 +202,70 @@ model Vehicle {
   @@index([clientId])
 }
 
-model PriceListItem {
-  id          String             @id @default(cuid())
+model SpecialOrderPart {
+  id          String   @id @default(cuid())
   workshopId  String
   sku         String
-  type        PriceListItemType
   name        String
   description String?
-  unitPrice   Decimal            @db.Decimal(12, 2)
-  isActive    Boolean            @default(true)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  workshop Workshop @relation(fields: [workshopId], references: [id])
+  workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Restrict)
 
   @@unique([workshopId, sku])
   @@index([workshopId])
-  @@index([workshopId, type])
+  @@index([name])
+}
+
+model Service {
+  id         String          @id @default(cuid())
+  workshopId String
+  category   ServiceCategory
+  concept    String
+  system     String
+  family     String?
+  notes      String?
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  workshop Workshop       @relation(fields: [workshopId], references: [id], onDelete: Restrict)
+  prices   ServicePrice[]
+
+  @@index([workshopId])
+  @@index([workshopId, category])
+  @@index([concept])
+}
+
+model ServicePrice {
+  id          String      @id @default(cuid())
+  serviceId   String
+  vehicleType VehicleType
+  price       Decimal     @db.Decimal(12, 2)
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, vehicleType])
+  @@index([serviceId])
+}
+
+model LatheService {
+  id         String   @id @default(cuid())
+  workshopId String
+  name       String
+  size       String
+  diameter   String
+  price      Decimal  @db.Decimal(12, 2)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Restrict)
+
+  @@index([workshopId])
   @@index([name])
 }
 
@@ -217,26 +281,30 @@ model Supplier {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  workshop Workshop @relation(fields: [workshopId], references: [id])
+  workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Restrict)
 
   @@index([workshopId])
   @@index([name])
 }
 
 model Article {
-  id          String      @id @default(cuid())
-  workshopId  String
-  sku         String?
-  type        ArticleType
-  name        String
-  description String?
-  stock       Int         @default(0)
-  minStock    Int         @default(0)
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String            @id @default(cuid())
+  workshopId    String
+  sku           String?
+  type          ArticleType
+  name          String
+  description   String?
+  condition     ArticleCondition?
+  purchasePrice Decimal?          @db.Decimal(12, 2)
+  salePrice     Decimal?          @db.Decimal(12, 2)
+  photoUrl      String?
+  stock         Int               @default(0)
+  minStock      Int               @default(0)
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
-  workshop  Workshop        @relation(fields: [workshopId], references: [id])
+  workshop  Workshop        @relation(fields: [workshopId], references: [id], onDelete: Restrict)
   movements StockMovement[]
 
   @@unique([workshopId, sku])
@@ -258,31 +326,38 @@ model StockMovement {
   actorId     String
   createdAt   DateTime          @default(now())
 
-  article Article @relation(fields: [articleId], references: [id])
+  article Article @relation(fields: [articleId], references: [id], onDelete: Restrict)
 
   @@index([articleId, createdAt])
   @@index([workshopId])
+  @@index([actorId])
 }
 
 model CustodyItem {
-  id          String    @id @default(cuid())
-  workshopId  String
-  clientId    String
-  vehicleId   String?
-  description String
-  receivedAt  DateTime  @default(now())
-  returnedAt  DateTime?
-  isReturned  Boolean   @default(false)
-  notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  workshopId        String
+  clientId          String
+  vehicleId         String?
+  description       String
+  workOrderCode     String?
+  responsibleUserId String?
+  photoUrl          String?
+  receivedAt        DateTime  @default(now())
+  returnedAt        DateTime?
+  isReturned        Boolean   @default(false)
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  workshop Workshop @relation(fields: [workshopId], references: [id])
-  client   Client   @relation(fields: [clientId], references: [id])
-  vehicle  Vehicle? @relation(fields: [vehicleId], references: [id])
+  workshop    Workshop @relation(fields: [workshopId], references: [id], onDelete: Restrict)
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  vehicle     Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  responsible User?    @relation(fields: [responsibleUserId], references: [id], onDelete: SetNull)
 
   @@index([workshopId])
   @@index([clientId])
+  @@index([vehicleId])
+  @@index([responsibleUserId])
   @@index([workshopId, isReturned])
 }
 
