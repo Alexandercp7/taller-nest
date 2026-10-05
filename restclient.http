@@ -177,3 +177,139 @@ Content-Type: application/json
 DELETE {{baseUrl}}/services/{{serviceId}}
 Authorization: Bearer {{login.response.body.accessToken}}
 
+###
+### ÓRDENES DE TRABAJO (WORK ORDERS)
+###
+
+### Crear Orden de Trabajo con recepción y checklist
+# @name createWorkOrder
+POST {{baseUrl}}/work-orders
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "clientId": "REEMPLAZAR_CON_CLIENT_ID",
+  "vehicleId": "REEMPLAZAR_CON_VEHICLE_ID",
+  "failureDescription": "Rechinido en frenos delanteros y vibración al frenar",
+  "mileageIn": 65400,
+  "fuelLevel": 50,
+  "estimatedDelivery": "2026-10-10T18:00:00.000Z",
+  "checklist": {
+    "hasKeys": true,
+    "hasSpareTire": true,
+    "hasJack": true,
+    "hasTools": false,
+    "hasExtinguisher": false,
+    "personalItems": "Gafas de sol en guantera",
+    "exteriorDamage": [
+      { "component": "puerta_delantera_derecha", "damageType": "rayon_ligero" }
+    ]
+  }
+}
+
+### Listar Órdenes de Trabajo (con filtros y búsqueda)
+GET {{baseUrl}}/work-orders?page=1&limit=20&search=Sentra
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Obtener Detalle de Orden de Trabajo
+@workOrderId = {{createWorkOrder.response.body.id}}
+GET {{baseUrl}}/work-orders/{{workOrderId}}
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Avanzar Estado Operativo (validado por FSM)
+POST {{baseUrl}}/work-orders/{{workOrderId}}/status
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "status": "EN_DIAGNOSTICO"
+}
+
+### Alternar flag de Orden Retrasada
+PATCH {{baseUrl}}/work-orders/{{workOrderId}}/delayed
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "estaRetrasada": true
+}
+
+### Agregar Nota a la Orden de Trabajo
+POST {{baseUrl}}/work-orders/{{workOrderId}}/notes
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "content": "Se verificó desgaste al 90% en balatas delanteras y discos con ceja pronunciada.",
+  "isClientVisible": true
+}
+
+###
+### COTIZACIONES (QUOTATIONS)
+###
+
+### Consultar Cotización de la Orden de Trabajo
+GET {{baseUrl}}/work-orders/{{workOrderId}}/quotation
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Agregar Línea de Cotización (Mano de obra / Servicio)
+# @name addServiceLine
+POST {{baseUrl}}/work-orders/{{workOrderId}}/quotation/lines
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "lineType": "SERVICE",
+  "serviceId": "REEMPLAZAR_CON_SERVICE_ID",
+  "quantity": 1
+}
+
+### Agregar Línea de Cotización (Refacción)
+# @name addPartLine
+POST {{baseUrl}}/work-orders/{{workOrderId}}/quotation/lines
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "lineType": "PART",
+  "articleId": "REEMPLAZAR_CON_ARTICLE_ID",
+  "quantity": 1
+}
+
+### Ajuste de Precio con Motivo (Override)
+@lineId = {{addServiceLine.response.body.id}}
+PATCH {{baseUrl}}/work-orders/{{workOrderId}}/quotation/lines/{{lineId}}/override-price
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "finalPrice": "400.00",
+  "reason": "Descuento por promoción de mantenimiento de frenos"
+}
+
+### Configurar Descuento Global e IVA
+POST {{baseUrl}}/work-orders/{{workOrderId}}/quotation/discount
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "discountType": "PERCENT",
+  "discountValue": "5.00",
+  "aplicaIva": true
+}
+
+### Aprobar o Rechazar Líneas de Cotización por el Cliente
+POST {{baseUrl}}/work-orders/{{workOrderId}}/quotation/approve
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "decisions": [
+    {
+      "lineId": "{{lineId}}",
+      "status": "APPROVED"
+    }
+  ]
+}
+
+

@@ -13,6 +13,8 @@ import { InventoryModule } from './inventory/inventory.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { SpecialOrderPartsModule } from './special-order-parts/special-order-parts.module';
 import { ServicesModule } from './services/services.module';
+import { WorkOrdersModule } from './work-orders/work-orders.module';
+import { QuotationsModule } from './quotations/quotations.module';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 
 @Module({
@@ -34,6 +36,8 @@ import { DomainExceptionFilter } from './common/filters/domain-exception.filter'
     SuppliersModule,
     SpecialOrderPartsModule,
     ServicesModule,
+    WorkOrdersModule,
+    QuotationsModule,
   ],
   controllers: [],
   providers: [
