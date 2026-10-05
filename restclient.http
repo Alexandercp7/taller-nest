@@ -1,13 +1,13 @@
 ### =============================================================
 ### taller-back — REST Client (VSCode extension "REST Client")
 ### =============================================================
-### No hay prefijo /api/v1 todavía (ver main.ts) — rutas planas.
+### Prefijo /api/v1 configurado globalmente en main.ts.
 ### Ejecutar primero "Login" o "Login DIRECTOR": las siguientes
 ### requests reutilizan {{login.response.body.accessToken}} y
 ### {{login.response.body.refreshToken}} automáticamente.
 ### =============================================================
 
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:3000/api/v1
 
 ### ID de usuario a usar en los endpoints /users/:id de más abajo
 @userId = REEMPLAZAR_CON_UN_ID_REAL
@@ -113,3 +113,67 @@ Content-Type: application/json
 ### Desactivar usuario (soft-delete) — requiere permiso "user:manage"
 DELETE {{baseUrl}}/users/{{userId}}
 Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+### SERVICIOS / MANO DE OBRA
+###
+
+### Crear servicio con matriz de precios por tipo de vehículo
+# @name createService
+POST {{baseUrl}}/services
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "code": "SRV-FREN-01",
+  "concept": "Cambio de balatas delanteras",
+  "category": "FRENOS_Y_SUSPENSION",
+  "system": "Frenos",
+  "family": "Discos",
+  "estimatedMinutes": 60,
+  "basePrice": "350.00",
+  "costPrice": "150.00",
+  "notes": "Incluye limpieza y lubricación de herrajes",
+  "prices": [
+    { "vehicleType": "AUTO", "price": "400.00" },
+    { "vehicleType": "CAMIONETA", "price": "500.00" },
+    { "vehicleType": "CAMION", "price": "700.00" }
+  ]
+}
+
+### Listar servicios (resuelve precios para CAMIONETA)
+GET {{baseUrl}}/services?vehicleType=CAMIONETA&page=1&limit=20
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Obtener servicio por ID
+@serviceId = {{createService.response.body.id}}
+GET {{baseUrl}}/services/{{serviceId}}?vehicleType=AUTO
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Actualizar servicio
+PATCH {{baseUrl}}/services/{{serviceId}}
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "estimatedMinutes": 75,
+  "basePrice": "380.00"
+}
+
+### Actualizar matriz de precios del servicio
+PUT {{baseUrl}}/services/{{serviceId}}/prices
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "prices": [
+    { "vehicleType": "AUTO", "price": "420.00" },
+    { "vehicleType": "CAMIONETA", "price": "550.00" },
+    { "vehicleType": "CAMION", "price": "750.00" }
+  ]
+}
+
+### Desactivar servicio (soft-delete)
+DELETE {{baseUrl}}/services/{{serviceId}}
+Authorization: Bearer {{login.response.body.accessToken}}
+

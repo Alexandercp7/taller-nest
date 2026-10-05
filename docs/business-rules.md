@@ -37,7 +37,8 @@
 
 - Solo ADMIN/DIRECTOR/ASESOR confirman (no Técnico).
 - Al confirmar: congela `frozenTotal` (inmutable en adelante), crea/actualiza la CxC (sin
-  duplicar), resuelve el estado de facturación y recalcula el tag del cliente — todo atómico.
+  duplicar), resuelve el estado de facturación y recalcula la segmentación y deuda del cliente
+  (`segment`, `hasDebt`) — todo atómico.
 - La CxC **nace solo aquí**, nunca a partir de la cotización.
 - Anticipos ≥ total → la CxC nace con saldo 0 y estado `PAID`.
 
@@ -69,11 +70,13 @@ facturación pendiente para no perder órdenes por facturar.
 
 ---
 
-## Inventario
+## Inventario y Activos del Taller
 
-- Al asignar refacciones a una OT, el stock baja automáticamente. **El stock nunca queda
-  negativo.**
-- Si un artículo cae por debajo de su `minStock`, se genera una alerta.
+- **Separación de dominios:**
+  - **Refacciones y consumibles (`Article`):** Materiales con Kardex de existencias. `PARTE_EN_VENTA` requiere precio de venta; `CONSUMIBLE` es insumo interno del taller. Al asignar refacciones a una OT, el stock baja automáticamente. **El stock nunca queda negativo** (validado en dominio y protegido en BD).
+  - **Herramientas y equipo (`Tool`):** Activos fijos propios del taller (escáneres, elevadores, herramienta neumática/manual). Se gestionan por número de serie, condición física, técnico asignado y mantenimiento. **Nunca** se cobran ni se consumen como ítem de inventario en una OT.
+- **Alertas de stock:** Si un artículo cae por debajo de su `minStock`, se genera una alerta automática de stock bajo.
+- **Piezas en custodia (`CustodyItem`):** Registro de pertenencias del cliente resguardadas en taller, con evidencia fotográfica y confirmación de entrega.
 
 ---
 
@@ -81,7 +84,7 @@ facturación pendiente para no perder órdenes por facturar.
 
 - La OT **no se borra** una vez iniciado el trabajo: solo en estado `RECIBIDA` o `CANCELADA`.
 - Un **cliente** no se borra si tiene órdenes activas.
-- Usuarios, artículos y proveedores usan **soft-delete** (se desactivan, no se eliminan).
+- Usuarios, artículos, herramientas y proveedores usan **soft-delete** (se desactivan, no se eliminan).
 - Estados terminales (`CERRADA`, `CANCELADA`) son inmutables.
 
 > La ubicación técnica de cada imposición está en [`work-orders.md`](./work-orders.md),

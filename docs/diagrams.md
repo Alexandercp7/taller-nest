@@ -21,13 +21,13 @@ flowchart TB
   PAY[payments]
   FAC[invoicing]
   INV[inventory]
-  LP[price-list]
+  SRV[services]
   POR[portal]
   PROD[activities + kpi + dashboard]
 
   IAM --> CRM & OT & PROD
   CRM --> OT
-  LP --> COT
+  SRV --> COT
   INV --> OT
   OT --> COT
   CC --> OT & FIN & CRM
@@ -45,7 +45,7 @@ flowchart LR
   common & prisma & audit -->|importados por todos| ALL(( ))
 
   auth --> users
-  work-orders --> users & quotations & inventory & price-list
+  work-orders --> users & quotations & inventory & services
   commercial-close --> work-orders & finance & clients
   payments --> finance
   portal -. lectura .-> work-orders

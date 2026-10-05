@@ -32,23 +32,31 @@ enum VehicleType {
 }
 
 enum ServiceCategory {
-  AFINACION_Y_OTROS
-  MECANICA_RAPIDA
+  AFINACION_Y_MANTENIMIENTO
+  FRENOS_Y_SUSPENSION
   MECANICA_GENERAL
+  MECANICA_RAPIDA
+  ELECTRICO_Y_DIAGNOSTICO
+  TORNO_Y_MAQUINADO
 }
 
 enum ArticleType {
-  HERRAMIENTA
-  CONSUMIBLE
-  EQUIPO
   PARTE_EN_VENTA
+  CONSUMIBLE
 }
 
-enum ArticleCondition {
+enum ToolCondition {
   NUEVO
   BUENO
   REGULAR
   DANADO
+}
+
+enum ToolStatus {
+  DISPONIBLE
+  EN_USO
+  EN_MANTENIMIENTO
+  DADO_DE_BAJA
 }
 
 enum StockMovementType {
@@ -69,9 +77,9 @@ model Workshop {
   specialOrderParts SpecialOrderPart[]
   suppliers     Supplier[]
   articles      Article[]
+  tools         Tool[]
   custodyItems  CustodyItem[]
   services      Service[]
-  latheServices LatheService[]
 }
 
 model User {
@@ -91,6 +99,7 @@ model User {
   refreshTokens           RefreshToken[]
   userPermissions         UserPermission[]
   custodyItemsResponsible CustodyItem[]
+  assignedTools           Tool[]
 
   @@index([workshopId])
   @@index([email])
@@ -221,20 +230,25 @@ model SpecialOrderPart {
 }
 
 model Service {
-  id         String          @id @default(cuid())
-  workshopId String
-  category   ServiceCategory
-  concept    String
-  system     String
-  family     String?
-  notes      String?
-  isActive   Boolean         @default(true)
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  id               String          @id @default(cuid())
+  workshopId       String
+  code             String?
+  concept          String
+  category         ServiceCategory
+  system           String
+  family           String?
+  estimatedMinutes Int?
+  basePrice        Decimal?        @db.Decimal(12, 2)
+  costPrice        Decimal?        @db.Decimal(12, 2)
+  notes            String?
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   workshop Workshop       @relation(fields: [workshopId], references: [id], onDelete: Restrict)
   prices   ServicePrice[]
 
+  @@unique([workshopId, code])
   @@index([workshopId])
   @@index([workshopId, category])
   @@index([concept])
@@ -252,23 +266,6 @@ model ServicePrice {
   @@index([serviceId])
 }
 
-model LatheService {
-  id         String   @id @default(cuid())
-  workshopId String
-  name       String
-  size       String
-  diameter   String
-  price      Decimal  @db.Decimal(12, 2)
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Restrict)
-
-  @@index([workshopId])
-  @@index([name])
-}
-
 model Supplier {
   id          String   @id @default(cuid())
   workshopId  String
@@ -281,35 +278,70 @@ model Supplier {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Restrict)
+  workshop Workshop  @relation(fields: [workshopId], references: [id], onDelete: Restrict)
+  articles Article[]
 
   @@index([workshopId])
   @@index([name])
 }
 
 model Article {
-  id            String            @id @default(cuid())
-  workshopId    String
-  sku           String?
-  type          ArticleType
-  name          String
-  description   String?
-  condition     ArticleCondition?
-  purchasePrice Decimal?          @db.Decimal(12, 2)
-  salePrice     Decimal?          @db.Decimal(12, 2)
-  photoUrl      String?
-  stock         Int               @default(0)
-  minStock      Int               @default(0)
-  isActive      Boolean           @default(true)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id             String            @id @default(cuid())
+  workshopId     String
+  supplierId     String?
+  sku            String?
+  oemNumber      String?
+  type           ArticleType
+  name           String
+  description    String?
+  brand          String?
+  location       String?
+  isSpecialOrder Boolean           @default(false)
+  purchasePrice  Decimal?          @db.Decimal(12, 2)
+  salePrice      Decimal?          @db.Decimal(12, 2)
+  photoUrl       String?
+  stock          Int               @default(0)
+  minStock       Int               @default(0)
+  isActive       Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
   workshop  Workshop        @relation(fields: [workshopId], references: [id], onDelete: Restrict)
+  supplier  Supplier?       @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   movements StockMovement[]
 
   @@unique([workshopId, sku])
   @@index([workshopId])
   @@index([workshopId, type])
+  @@index([supplierId])
+  @@index([name])
+  @@index([oemNumber])
+}
+
+model Tool {
+  id                String        @id @default(cuid())
+  workshopId        String
+  serialNumber      String?
+  name              String
+  brand             String?
+  description       String?
+  condition         ToolCondition @default(BUENO)
+  status            ToolStatus    @default(DISPONIBLE)
+  purchasePrice     Decimal?      @db.Decimal(12, 2)
+  assignedToUserId  String?
+  lastMaintenanceAt DateTime?
+  notes             String?
+  photoUrl          String?
+  isActive          Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Restrict)
+  assignedTo User?    @relation(fields: [assignedToUserId], references: [id], onDelete: SetNull)
+
+  @@index([workshopId])
+  @@index([assignedToUserId])
+  @@index([workshopId, status])
   @@index([name])
 }
 
@@ -322,6 +354,7 @@ model StockMovement {
   qty         Int
   before      Int
   after       Int
+  unitCost    Decimal?          @db.Decimal(12, 2)
   reason      String?
   actorId     String
   createdAt   DateTime          @default(now())

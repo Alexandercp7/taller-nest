@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ArticleCondition, ArticleType } from '@prisma/client';
+import { ArticleType } from '@prisma/client';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsOptional,
@@ -18,6 +19,17 @@ export class CreateArticleDto {
   @IsOptional()
   sku?: string;
 
+  @ApiPropertyOptional({ maxLength: 50 })
+  @IsString()
+  @MaxLength(50)
+  @IsOptional()
+  oemNumber?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  supplierId?: string;
+
   @ApiProperty({ enum: ArticleType })
   @IsEnum(ArticleType)
   type!: ArticleType;
@@ -33,16 +45,30 @@ export class CreateArticleDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ enum: ArticleCondition })
-  @IsEnum(ArticleCondition)
-  condition!: ArticleCondition;
+  @ApiPropertyOptional({ maxLength: 100 })
+  @IsString()
+  @MaxLength(100)
+  @IsOptional()
+  brand?: string;
 
-  @ApiProperty({
-    description: 'Precio de compra, string decimal con hasta 2 decimales.',
+  @ApiPropertyOptional({ maxLength: 50, description: 'Ubicación en almacén (anaquel/pasillo).' })
+  @IsString()
+  @MaxLength(50)
+  @IsOptional()
+  location?: string;
+
+  @ApiPropertyOptional({ default: false, description: 'Indica si es pieza sobre pedido especial.' })
+  @IsBoolean()
+  @IsOptional()
+  isSpecialOrder?: boolean = false;
+
+  @ApiPropertyOptional({
+    description: 'Precio de compra/costo, string decimal con hasta 2 decimales.',
     example: '450.00',
   })
   @IsMoneyString()
-  purchasePrice!: string;
+  @IsOptional()
+  purchasePrice?: string;
 
   @ApiPropertyOptional({
     description:

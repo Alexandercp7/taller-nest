@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { ArticleCondition, ArticleType } from '@prisma/client';
+import { ArticleType } from '@prisma/client';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsOptional,
@@ -23,6 +24,17 @@ export class UpdateArticleDto {
   @IsOptional()
   sku?: string;
 
+  @ApiPropertyOptional({ maxLength: 50 })
+  @IsString()
+  @MaxLength(50)
+  @IsOptional()
+  oemNumber?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  supplierId?: string;
+
   @ApiPropertyOptional({ enum: ArticleType })
   @IsEnum(ArticleType)
   @IsOptional()
@@ -40,10 +52,22 @@ export class UpdateArticleDto {
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ enum: ArticleCondition })
-  @IsEnum(ArticleCondition)
+  @ApiPropertyOptional({ maxLength: 100 })
+  @IsString()
+  @MaxLength(100)
   @IsOptional()
-  condition?: ArticleCondition;
+  brand?: string;
+
+  @ApiPropertyOptional({ maxLength: 50 })
+  @IsString()
+  @MaxLength(50)
+  @IsOptional()
+  location?: string;
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  @IsOptional()
+  isSpecialOrder?: boolean;
 
   @ApiPropertyOptional({
     description: 'Precio de compra, string decimal con hasta 2 decimales.',

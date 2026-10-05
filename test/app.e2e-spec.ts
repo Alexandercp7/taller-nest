@@ -17,6 +17,7 @@ describe('Auth + endpoints protegidos (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api/v1');
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -31,20 +32,20 @@ describe('Auth + endpoints protegidos (e2e)', () => {
     await app.close();
   });
 
-  it('GET /suppliers sin token -> 401', () => {
-    return request(app.getHttpServer()).get('/suppliers').expect(401);
+  it('GET /api/v1/suppliers sin token -> 401', () => {
+    return request(app.getHttpServer()).get('/api/v1/suppliers').expect(401);
   });
 
-  it('POST /auth/login con credenciales inválidas -> 401', () => {
+  it('POST /api/v1/auth/login con credenciales inválidas -> 401', () => {
     return request(app.getHttpServer())
-      .post('/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: adminEmail, password: 'contraseña-incorrecta' })
       .expect(401);
   });
 
-  it('POST /auth/login con credenciales válidas -> 200 y devuelve tokens', async () => {
+  it('POST /api/v1/auth/login con credenciales válidas -> 200 y devuelve tokens', async () => {
     const res = await request(app.getHttpServer())
-      .post('/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: adminEmail, password: adminPassword })
       .expect(200);
 
@@ -56,16 +57,16 @@ describe('Auth + endpoints protegidos (e2e)', () => {
     );
   });
 
-  it('GET /suppliers con token de ADMIN -> 200 y lista paginada', async () => {
+  it('GET /api/v1/suppliers con token de ADMIN -> 200 y lista paginada', async () => {
     const login = await request(app.getHttpServer())
-      .post('/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: adminEmail, password: adminPassword })
       .expect(200);
 
     const accessToken = (login.body as { accessToken: string }).accessToken;
 
     const res = await request(app.getHttpServer())
-      .get('/suppliers')
+      .get('/api/v1/suppliers')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -10,10 +11,20 @@ import { VehiclesModule } from './vehicles/vehicles.module';
 import { ClientsModule } from './clients/clients.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
+import { SpecialOrderPartsModule } from './special-order-parts/special-order-parts.module';
+import { ServicesModule } from './services/services.module';
+import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     PrismaModule,
     UserModule,
     AuthModule,
@@ -21,11 +32,15 @@ import { SuppliersModule } from './suppliers/suppliers.module';
     ClientsModule,
     InventoryModule,
     SuppliersModule,
+    SpecialOrderPartsModule,
+    ServicesModule,
   ],
   controllers: [],
   providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
+    { provide: APP_FILTER, useClass: DomainExceptionFilter },
   ],
 })
 export class AppModule {}

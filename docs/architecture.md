@@ -28,8 +28,10 @@ Finanzas nunca reconoce ingreso a partir de la cotización.
 | [`work-orders.md`](./work-orders.md) | Núcleo OT: agregado, máquinas de estado, secciones. |
 | [`quotation.md`](./quotation.md) | Cotización, aprobación por línea, override de precio. |
 | [`finance.md`](./finance.md) | CxC, pagos, caja, comisiones, reportes, CxP. |
+| [`inventory.md`](./inventory.md) | Almacén, refacciones/consumibles, Kardex y herramientas/activos. |
+| [`services.md`](./services.md) | Mano de obra, maquinados/torno y matriz de precios por tipo de vehículo. |
 
-> Los módulos restantes (inventory,vehiclesclients, price-list, invoicing, payment-schedule, suppliers,
+> Los módulos restantes (vehicles, clients, invoicing, payment-schedule, suppliers,
 > portal, activities, kpi, dashboard) se documentan bajo demanda con la misma plantilla de
 > [`code-conventions.md`](./code-conventions.md). No todo necesita su propio archivo desde el día uno.
 
@@ -41,7 +43,7 @@ Finanzas nunca reconoce ingreso a partir de la cotización.
 Mapa visual y grafo de dependencias en [`diagrams.md`](./diagrams.md).
 
 `auth` · `users` · `clients` · `vehicles` · `work-orders` · `quotations` · `commercial-close` ·
-`payments` · `invoicing` · `inventory` · `price-list` · `finance` · `payment-schedule` ·
+`payments` · `invoicing` · `inventory` · `services` · `finance` · `payment-schedule` ·
 `suppliers` · `portal` · `activities` · `kpi` · `dashboard`
 
 **Reglas anti-circular:** `quotations/` y `clients/` **no** importan `work-orders/` (reciben

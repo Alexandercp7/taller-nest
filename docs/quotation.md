@@ -30,7 +30,7 @@ Todos los montos `Decimal(12,2)`.
 
 ADMIN/DIRECTOR/ASESOR ajustan `finalPrice` de una línea con motivo (auditado, before/after); el
 Técnico solo sugiere vía nota. **No** altera el catálogo base ([`inventory.md`](./inventory.md) /
-price-list).
+[`services.md`](./services.md)).
 
 ## PDF
 

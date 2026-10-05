@@ -6,11 +6,13 @@ import { InventoryService } from './inventory.service';
 import { InventoryController } from './inventory.controller';
 import { CustodyService } from './custody.service';
 import { CustodyController } from './custody.controller';
+import { ToolsService } from './tools.service';
+import { ToolsController } from './tools.controller';
 
 @Module({
   imports: [AuditModule, ClientsModule, UploadsModule],
-  controllers: [InventoryController, CustodyController],
-  providers: [InventoryService, CustodyService],
-  exports: [InventoryService, CustodyService],
+  controllers: [InventoryController, CustodyController, ToolsController],
+  providers: [InventoryService, CustodyService, ToolsService],
+  exports: [InventoryService, CustodyService, ToolsService],
 })
 export class InventoryModule {}

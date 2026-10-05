@@ -2,7 +2,6 @@ import { NotFoundException } from '@nestjs/common';
 import { ArticleType, StockMovementType } from '@prisma/client';
 import {
   InsufficientStockException,
-  SalePriceNotAllowedException,
   SalePriceRequiredException,
 } from '@common/exceptions/domain.exceptions';
 import { AuditService } from '../audit/audit.service';
@@ -18,6 +17,7 @@ describe('InventoryService', () => {
     article: {
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      count: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
     },
@@ -46,13 +46,12 @@ describe('InventoryService', () => {
   });
 
   describe('create', () => {
-    it('exige salePrice para CONSUMIBLE', async () => {
+    it('exige salePrice para PARTE_EN_VENTA', async () => {
       await expect(
         service.create(
           {
-            type: ArticleType.CONSUMIBLE,
-            name: 'Aceite',
-            condition: 'NUEVO',
+            type: ArticleType.PARTE_EN_VENTA,
+            name: 'Filtro de Aceite',
           } as never,
           actor,
         ),
@@ -60,30 +59,19 @@ describe('InventoryService', () => {
       expect(prisma.article.create).not.toHaveBeenCalled();
     });
 
-    it('rechaza salePrice para HERRAMIENTA', async () => {
-      await expect(
-        service.create(
-          {
-            type: ArticleType.HERRAMIENTA,
-            name: 'Llave',
-            condition: 'NUEVO',
-            salePrice: '100.00',
-          } as never,
-          actor,
-        ),
-      ).rejects.toThrow(SalePriceNotAllowedException);
-      expect(prisma.article.create).not.toHaveBeenCalled();
-    });
-
     it('crea el artículo en el workshop del actor y audita ARTICLE_CREATED', async () => {
       (prisma.article.create as jest.Mock).mockResolvedValue({
         id: 'article-1',
         workshopId: actor.workshopId,
-        sku: null,
-        type: ArticleType.HERRAMIENTA,
-        name: 'Llave',
+        supplierId: 'sup-1',
+        sku: 'FLT-001',
+        oemNumber: 'OEM-12345',
+        type: ArticleType.PARTE_EN_VENTA,
+        name: 'Filtro de Aceite',
         description: null,
-        condition: 'NUEVO',
+        brand: 'Bosch',
+        location: 'A-12',
+        isSpecialOrder: false,
         purchasePrice: null,
         salePrice: null,
         photoUrl: null,
@@ -95,16 +83,22 @@ describe('InventoryService', () => {
 
       await service.create(
         {
-          type: ArticleType.HERRAMIENTA,
-          name: 'Llave',
-          condition: 'NUEVO',
+          type: ArticleType.PARTE_EN_VENTA,
+          name: 'Filtro de Aceite',
+          salePrice: '250.00',
+          brand: 'Bosch',
+          oemNumber: 'OEM-12345',
         } as never,
         actor,
       );
 
       expect(prisma.article.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ workshopId: actor.workshopId }),
+          data: expect.objectContaining({
+            workshopId: actor.workshopId,
+            brand: 'Bosch',
+            oemNumber: 'OEM-12345',
+          }),
         }),
       );
       expect(audit.log).toHaveBeenCalledWith(
@@ -123,6 +117,47 @@ describe('InventoryService', () => {
 
       await expect(service.findOneArticle('foreign-1', actor)).rejects.toThrow(
         NotFoundException,
+      );
+    });
+  });
+
+  describe('findAll', () => {
+    it('devuelve { data, total } paginado correctamente', async () => {
+      (prisma.article.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'a1',
+          workshopId: actor.workshopId,
+          type: ArticleType.PARTE_EN_VENTA,
+          name: 'Filtro',
+          stock: 10,
+          minStock: 2,
+          isActive: true,
+          createdAt: new Date(),
+        },
+      ]);
+      (prisma.article.count as jest.Mock).mockResolvedValue(1);
+
+      const result = await service.findAll({ page: 1, limit: 10 }, actor);
+
+      expect(result).toEqual({
+        data: [
+          expect.objectContaining({
+            id: 'a1',
+            name: 'Filtro',
+          }),
+        ],
+        total: 1,
+      });
+      expect(prisma.article.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 0,
+          take: 10,
+        }),
+      );
+      expect(prisma.article.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ workshopId: actor.workshopId }),
+        }),
       );
     });
   });

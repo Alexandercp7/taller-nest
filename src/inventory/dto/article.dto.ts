@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ArticleCondition, ArticleType } from '@prisma/client';
+import { ArticleType } from '@prisma/client';
 
 export class ArticleDto {
   @ApiProperty()
@@ -11,6 +11,12 @@ export class ArticleDto {
   @ApiPropertyOptional()
   sku?: string;
 
+  @ApiPropertyOptional()
+  oemNumber?: string;
+
+  @ApiPropertyOptional()
+  supplierId?: string;
+
   @ApiProperty({ enum: ArticleType })
   type!: ArticleType;
 
@@ -20,8 +26,14 @@ export class ArticleDto {
   @ApiPropertyOptional()
   description?: string;
 
-  @ApiPropertyOptional({ enum: ArticleCondition })
-  condition?: ArticleCondition;
+  @ApiPropertyOptional()
+  brand?: string;
+
+  @ApiPropertyOptional()
+  location?: string;
+
+  @ApiProperty()
+  isSpecialOrder!: boolean;
 
   @ApiPropertyOptional({ description: 'Decimal como string, p. ej. "450.00".' })
   purchasePrice?: string;

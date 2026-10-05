@@ -55,7 +55,7 @@ export class InventoryController {
   findAll(
     @Query() query: ListArticlesQueryDto,
     @CurrentUser() actor: RequestUser,
-  ): Promise<ArticleDto[]> {
+  ): Promise<{ data: ArticleDto[]; total: number }> {
     return this.inventoryService.findAll(query, actor);
   }
 

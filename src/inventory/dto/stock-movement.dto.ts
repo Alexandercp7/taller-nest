@@ -26,6 +26,9 @@ export class StockMovementDto {
   @ApiPropertyOptional()
   reason?: string;
 
+  @ApiPropertyOptional({ description: 'Costo unitario registrado en el movimiento.' })
+  unitCost?: string;
+
   @ApiProperty()
   actorId!: string;
 

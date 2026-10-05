@@ -47,11 +47,15 @@ export class InventoryService {
     const article = await db.article.create({
       data: {
         workshopId: actor.workshopId,
+        supplierId: dto.supplierId,
         sku: dto.sku,
+        oemNumber: dto.oemNumber,
         type: dto.type,
         name: dto.name,
         description: dto.description,
-        condition: dto.condition,
+        brand: dto.brand,
+        location: dto.location,
+        isSpecialOrder: dto.isSpecialOrder ?? false,
         purchasePrice: dto.purchasePrice,
         salePrice: dto.salePrice,
         stock: dto.stock ?? 0,
@@ -77,7 +81,7 @@ export class InventoryService {
   async findAll(
     query: ListArticlesQueryDto,
     actor: RequestUser,
-  ): Promise<ArticleDto[]> {
+  ): Promise<{ data: ArticleDto[]; total: number }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -100,14 +104,17 @@ export class InventoryService {
       ':',
     ) as ['name' | 'createdAt', 'asc' | 'desc'];
 
-    const articles = await this.prisma.article.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { [sortField]: sortDir },
-    });
+    const [articles, total] = await Promise.all([
+      this.prisma.article.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [sortField]: sortDir },
+      }),
+      this.prisma.article.count({ where }),
+    ]);
 
-    return articles.map((a) => this.toDto(a));
+    return { data: articles.map((a) => this.toDto(a)), total };
   }
 
   async lowStock(actor: RequestUser): Promise<ArticleDto[]> {
@@ -151,11 +158,15 @@ export class InventoryService {
     const updated = await db.article.update({
       where: { id },
       data: {
+        supplierId: dto.supplierId,
         sku: dto.sku,
+        oemNumber: dto.oemNumber,
         type: dto.type,
         name: dto.name,
         description: dto.description,
-        condition: dto.condition,
+        brand: dto.brand,
+        location: dto.location,
+        isSpecialOrder: dto.isSpecialOrder,
         purchasePrice: dto.purchasePrice,
         salePrice: dto.salePrice,
         minStock: dto.minStock,
@@ -268,6 +279,7 @@ export class InventoryService {
         qty: dto.qty,
         before,
         after,
+        unitCost: dto.unitCost,
         reason: dto.reason,
         actorId: actor.id,
       },
@@ -344,11 +356,15 @@ export class InventoryService {
     return {
       id: article.id,
       workshopId: article.workshopId,
+      supplierId: article.supplierId ?? undefined,
       sku: article.sku ?? undefined,
+      oemNumber: article.oemNumber ?? undefined,
       type: article.type,
       name: article.name,
       description: article.description ?? undefined,
-      condition: article.condition ?? undefined,
+      brand: article.brand ?? undefined,
+      location: article.location ?? undefined,
+      isSpecialOrder: article.isSpecialOrder,
       purchasePrice: article.purchasePrice?.toString() ?? undefined,
       salePrice: article.salePrice?.toString() ?? undefined,
       photoUrl: article.photoUrl ?? undefined,
@@ -368,6 +384,7 @@ export class InventoryService {
       qty: movement.qty,
       before: movement.before,
       after: movement.after,
+      unitCost: movement.unitCost?.toString() ?? undefined,
       reason: movement.reason ?? undefined,
       actorId: movement.actorId,
       createdAt: movement.createdAt,

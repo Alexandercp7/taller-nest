@@ -20,7 +20,11 @@ Definirlos en `schema.prisma` desde la primera migración:
 | `CashMovement` | `(type, createdAt)`, `(referenceType, referenceId)` | Reportes y trazabilidad. |
 | `StockMovement` | `(articleId, createdAt)` | Kardex por artículo. |
 | `Article` | índice parcial `WHERE stock < minStock` | Alerta de stock bajo eficiente. |
-| `Client` | `(tag)`, teléfono/placas para búsqueda del portal | Segmentación y búsqueda pública. |
+| `Article` | `(workshopId, type)`, `(supplierId)`, `(oemNumber)` | Búsqueda y filtrado de refacciones/consumibles. |
+| `Tool` | `(workshopId, status)`, `(assignedToUserId)` | Control y disponibilidad de herramienta por técnico. |
+| `Client` | `(workshopId, segment)`, `(workshopId, hasDebt)`, `(phone)` | Segmentación, análisis de cartera y búsqueda pública. |
+| `Service` | `(workshopId, code)` unique, `(workshopId, category)`, `(concept)` | Catálogo de mano de obra y búsqueda rápida en cotizador. |
+| `ServicePrice` | `(serviceId, vehicleType)` unique | Resolución de tarifas de servicio por vehículo. |
 
 Regla: cada campo que aparezca en un `where`/`orderBy` de un listado frecuente necesita índice.
 
