@@ -18,6 +18,7 @@ import { QuotationsModule } from './quotations/quotations.module';
 import { FinanceModule } from './finance/finance.module';
 import { PaymentsModule } from './payments/payments.module';
 import { CommercialCloseModule } from './commercial-close/commercial-close.module';
+import { InvoicingModule } from './invoicing/invoicing.module';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 
 @Module({
@@ -44,6 +45,7 @@ import { DomainExceptionFilter } from './common/filters/domain-exception.filter'
     FinanceModule,
     PaymentsModule,
     CommercialCloseModule,
+    InvoicingModule,
   ],
   controllers: [],
   providers: [
