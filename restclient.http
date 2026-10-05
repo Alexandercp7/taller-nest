@@ -312,4 +312,78 @@ Content-Type: application/json
   ]
 }
 
+###
+### CIERRE COMERCIAL (COMMERCIAL CLOSE)
+###
+
+### Confirmar Cierre Comercial de la Orden de Trabajo
+# @name commercialClose
+POST {{baseUrl}}/work-orders/{{workOrderId}}/commercial-close
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "requiresInvoice": true,
+  "notes": "Cierre comercial confirmado por el asesor en entrega"
+}
+
+### Consultar Cierre Comercial de la Orden de Trabajo
+GET {{baseUrl}}/work-orders/{{workOrderId}}/commercial-close
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+### PAGOS Y ANTICIPOS (PAYMENTS)
+###
+
+### Registrar Pago o Anticipo a la Orden de Trabajo
+# @name createPayment
+POST {{baseUrl}}/work-orders/{{workOrderId}}/payments
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "type": "FINAL_SETTLEMENT",
+  "paymentMethod": "CARD",
+  "amount": "400.00",
+  "terminalCommission": "14.00",
+  "reference": "AUTH-481920",
+  "notes": "Pago con tarjeta de débito en terminal"
+}
+
+### Listar Historial de Pagos de la Orden
+GET {{baseUrl}}/work-orders/{{workOrderId}}/payments
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Resumen Financiero de la Orden (Saldo, Totales y CxC)
+GET {{baseUrl}}/work-orders/{{workOrderId}}/payments/summary
+Authorization: Bearer {{login.response.body.accessToken}}
+
+###
+### FINANZAS Y CAJA (FINANCE)
+###
+
+### Listar Cuentas por Cobrar (CxC)
+GET {{baseUrl}}/finance/receivables?page=1&limit=20&status=OPEN
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Consultar Movimientos del Flujo de Caja
+GET {{baseUrl}}/finance/cash-movements
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Registrar Movimiento Manual de Caja (Ingreso o Egreso)
+POST {{baseUrl}}/finance/cash-movements
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "type": "EXPENSE",
+  "amount": "150.00",
+  "concept": "Compra de café y artículos de limpieza de oficina"
+}
+
+### Reporte Financiero Consolidado
+GET {{baseUrl}}/finance/report
+Authorization: Bearer {{login.response.body.accessToken}}
+
+
 

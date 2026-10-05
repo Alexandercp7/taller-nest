@@ -15,6 +15,9 @@ import { SpecialOrderPartsModule } from './special-order-parts/special-order-par
 import { ServicesModule } from './services/services.module';
 import { WorkOrdersModule } from './work-orders/work-orders.module';
 import { QuotationsModule } from './quotations/quotations.module';
+import { FinanceModule } from './finance/finance.module';
+import { PaymentsModule } from './payments/payments.module';
+import { CommercialCloseModule } from './commercial-close/commercial-close.module';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 
 @Module({
@@ -38,6 +41,9 @@ import { DomainExceptionFilter } from './common/filters/domain-exception.filter'
     ServicesModule,
     WorkOrdersModule,
     QuotationsModule,
+    FinanceModule,
+    PaymentsModule,
+    CommercialCloseModule,
   ],
   controllers: [],
   providers: [

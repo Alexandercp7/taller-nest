@@ -35,5 +35,18 @@ diario (`@nestjs/schedule`).
 
 ## Endpoints (v1)
 
-`POST /work-orders/:woId/payments` (idempotente) · `GET /work-orders/:woId/payments/summary` ·
-`GET /finance/receivables` · `POST /finance/cash-movements` · `GET /finance/report?from&to`.
+### Cierre Comercial (`commercial-close`)
+- `POST /api/v1/work-orders/:woId/commercial-close` (requiere `work-orders:write` o `finance:write`):
+  Congela las líneas de cotización aprobadas, calcula el total congelado, resuelve `billingStatus` y genera/actualiza la CxC deduciendo anticipos.
+- `GET /api/v1/work-orders/:woId/commercial-close`: Consulta el detalle del cierre comercial de la OT.
+
+### Pagos (`payments`)
+- `POST /api/v1/work-orders/:woId/payments` (requiere `finance:write`):
+  Registra un anticipo (`ADVANCE`) o liquidación (`FINAL_SETTLEMENT`), valida saldo disponible vía `BalanceValidator`, genera `CashMovement` (INCOME), actualiza saldo y estado de CxC (`OPEN`/`PARTIAL`/`PAID`), actualiza estatus comercial de la OT (`COBRADA_PARCIAL`/`COBRADA_TOTAL`) y recalcula etiqueta del cliente.
+- `GET /api/v1/work-orders/:woId/payments/summary`: Resumen de pagos, anticipos acumulados, saldo pendiente y comisiones de terminal.
+
+### Finanzas (`finance`)
+- `GET /api/v1/finance/receivables`: Listado paginado de CxC con filtros por estado (`OPEN`, `PARTIAL`, `PAID`, `CANCELLED`) y `clientId`.
+- `POST /api/v1/finance/cash-movements` (requiere `finance:write`): Registra movimientos de caja manuales (`INCOME` / `EXPENSE`).
+- `GET /api/v1/finance/cash-movements`: Listado de movimientos de caja con filtros por fechas, tipo y origen.
+- `GET /api/v1/finance/report?from&to`: Reporte financiero agregado (bruto, descuento, IVA, comisiones, neto).

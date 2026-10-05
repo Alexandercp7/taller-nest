@@ -5,9 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ClientSegment, PersonType, Prisma } from '@prisma/client';
+import { ClientSegment, OperationalStatus, PersonType, Prisma, ReceivableStatus } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
-import { InvalidClientIdentityException } from '@common/exceptions/domain.exceptions';
+import {
+  ClientHasActiveOrdersException,
+  InvalidClientIdentityException,
+} from '@common/exceptions/domain.exceptions';
 import { RequestUser } from '@common/types/request-user.type';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -277,27 +280,32 @@ export class ClientsService {
     return { frecuente, antiguo };
   }
 
-  // TODO(work-orders): reemplazar cuando exista el modelo WorkOrder.
-  // const activeCount = await this.prisma.workOrder.count({
-  //   where: { clientId, operationalStatus: { notIn: TERMINAL_STATUSES } },
-  // });
-  // if (activeCount > 0) throw new ClientHasActiveOrdersException();
   private async assertNoActiveOrders(clientId: string): Promise<void> {
-    void clientId;
+    const activeCount = await this.prisma.workOrder.count({
+      where: {
+        clientId,
+        operationalStatus: {
+          notIn: [OperationalStatus.CERRADA, OperationalStatus.CANCELADA],
+        },
+      },
+    });
+    if (activeCount > 0) throw new ClientHasActiveOrdersException();
   }
 
-  // TODO(work-orders, finance): reemplazar cuando existan WorkOrder y AccountReceivable.
-  // hasDebt = (await this.prisma.accountReceivable.count({
-  //   where: { workOrder: { clientId }, balance: { gt: 0 } },
-  // })) > 0;
-  // fullyPaidOrdersCount = await this.prisma.workOrder.count({
-  //   where: { clientId, accountReceivable: { status: 'PAID' } },
-  // });
   private async fetchSegmentationInputs(
     clientId: string,
   ): Promise<{ hasDebt: boolean; fullyPaidOrdersCount: number }> {
-    void clientId;
-    return { hasDebt: false, fullyPaidOrdersCount: 0 };
+    const receivables = await this.prisma.accountReceivable.findMany({
+      where: { clientId },
+      select: { balance: true, status: true },
+    });
+
+    const hasDebt = receivables.some((r) => r.balance.gt(0));
+    const fullyPaidOrdersCount = receivables.filter(
+      (r) => r.status === ReceivableStatus.PAID,
+    ).length;
+
+    return { hasDebt, fullyPaidOrdersCount };
   }
 
   private toClientDto(client: {

@@ -30,6 +30,8 @@ const PERMISSIONS = [
   { code: 'quotation:override-price', label: 'Ajustar precio con motivo' },
   { code: 'commercial-close:execute', label: 'Confirmar cierre comercial' },
   { code: 'payment:write', label: 'Registrar pagos y anticipos' },
+  { code: 'finance:read', label: 'Ver cuentas por cobrar y movimientos de caja' },
+  { code: 'finance:write', label: 'Registrar movimientos manuales de caja' },
   { code: 'invoice:read', label: 'Ver estado de facturación' },
   { code: 'invoice:write', label: 'Gestionar datos fiscales' },
   { code: 'inventory:read', label: 'Ver artículos y stock' },
