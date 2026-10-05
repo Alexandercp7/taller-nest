@@ -58,7 +58,9 @@
 Estados: `NO_REQUERIDA`, `PENDIENTE_DATOS`, `LISTA_PARA_FACTURAR`, `FACTURADA`, `CANCELADA`.
 El cierre resuelve el estado inicial: sin factura → `NO_REQUERIDA`; con factura y sin datos
 fiscales → `PENDIENTE_DATOS`; con datos → `LISTA_PARA_FACTURAR`. Existe una bandeja de
-facturación pendiente para no perder órdenes por facturar.
+facturación pendiente para no perder órdenes por facturar. Emisión genera snapshot inmutable
+con folio correlativo único (`FAC-XXXX`) y UUID fiscal v1. Cancelación requiere motivo SAT
+y pasa la OT a `CANCELADA`. Detalle en [`invoicing.md`](./invoicing.md).
 
 ---
 
@@ -88,4 +90,4 @@ facturación pendiente para no perder órdenes por facturar.
 - Estados terminales (`CERRADA`, `CANCELADA`) son inmutables.
 
 > La ubicación técnica de cada imposición está en [`work-orders.md`](./work-orders.md),
-> [`finance.md`](./finance.md), [`inventory.md`](./inventory.md) y [`auth.md`](./auth.md).
+> [`finance.md`](./finance.md), [`invoicing.md`](./invoicing.md), [`inventory.md`](./inventory.md) y [`auth.md`](./auth.md).

@@ -30,8 +30,9 @@ Finanzas nunca reconoce ingreso a partir de la cotización.
 | [`finance.md`](./finance.md) | CxC, pagos, caja, comisiones, reportes, CxP. |
 | [`inventory.md`](./inventory.md) | Almacén, refacciones/consumibles, Kardex y herramientas/activos. |
 | [`services.md`](./services.md) | Mano de obra, maquinados/torno y matriz de precios por tipo de vehículo. |
+| [`invoicing.md`](./invoicing.md) | Facturación interna, validación SAT, emisión inmutable y cancelación. |
 
-> Los módulos restantes (vehicles, clients, invoicing, payment-schedule, suppliers,
+> Los módulos restantes (vehicles, clients, payment-schedule, suppliers,
 > portal, activities, kpi, dashboard) se documentan bajo demanda con la misma plantilla de
 > [`code-conventions.md`](./code-conventions.md). No todo necesita su propio archivo desde el día uno.
 

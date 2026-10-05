@@ -386,4 +386,64 @@ GET {{baseUrl}}/finance/report
 Authorization: Bearer {{login.response.body.accessToken}}
 
 
+###
+### FACTURACIÓN INTERNA (INVOICING) — ADR-11
+###
+
+@invoiceId = REEMPLAZAR_CON_INVOICE_ID
+
+### Consultar Bandeja de Facturación Pendiente (Diagnóstico fiscal)
+GET {{baseUrl}}/invoicing/pending?page=1&limit=20
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Filtrar Bandeja por Estatus (LISTA_PARA_FACTURAR o PENDIENTE_DATOS)
+GET {{baseUrl}}/invoicing/pending?status=LISTA_PARA_FACTURAR
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Actualizar y Validar Datos Fiscales de la Orden y Cliente
+PUT {{baseUrl}}/invoicing/work-orders/{{workOrderId}}/fiscal-data
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "rfc": "PEPJ8001019Q8",
+  "businessName": "JUAN PEREZ PEREZ",
+  "zipCode": "03100",
+  "taxRegime": "612",
+  "cfdiUse": "G03",
+  "applyToClient": true
+}
+
+### Emitir Factura Interna (Genera folio secuencial FAC-XXXX y snapshot)
+# @name emitInvoice
+POST {{baseUrl}}/invoicing/work-orders/{{workOrderId}}/emit
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "paymentMethodSat": "PUE",
+  "paymentFormSat": "03",
+  "notes": "Factura interna correspondiente a servicio y refacciones"
+}
+
+### Listar Histórico de Facturas Emitidas y Canceladas
+GET {{baseUrl}}/invoicing/invoices?page=1&limit=20
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Consultar Detalle de una Factura por ID
+GET {{baseUrl}}/invoicing/invoices/{{invoiceId}}
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Cancelar Factura Interna (Revierte OT a CANCELADA)
+POST {{baseUrl}}/invoicing/invoices/{{invoiceId}}/cancel
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{
+  "satReasonCode": "02",
+  "cancellationReason": "Comprobante emitido con error en RFC a petición del cliente"
+}
+
+
+
 
