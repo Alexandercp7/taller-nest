@@ -13,6 +13,7 @@ async function bootstrap() {
 
   // Servir frontend de pruebas (demo local no versionado)
   app.use('/demo', express.static(path.join(process.cwd(), 'demo-ui')));
+  app.use(express.static(path.join(process.cwd(), 'demo-ui')));
 
   app.useGlobalPipes(
     new ValidationPipe({

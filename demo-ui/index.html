@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taller ERP — Plataforma Integral Automotriz</title>
+  <meta name="description" content="Sistema ERP para taller automotriz con arquitectura modular, cotizaciones, órdenes de trabajo, facturación interna SAT y finanzas.">
+
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus Jakarta Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/views.css">
+</head>
+<body>
+
+  <!-- Ambient Light Orbs -->
+  <div class="ambient-bg">
+    <div class="ambient-orb ambient-orb-1"></div>
+    <div class="ambient-orb ambient-orb-2"></div>
+  </div>
+
+  <div class="app-container">
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="#dashboard" class="brand-badge">
+          <div class="brand-icon">T</div>
+          <div class="brand-info">
+            <span class="brand-title">TALLER ERP</span>
+            <span class="brand-subtitle">Automotive Core</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Operación Principal</div>
+        <a class="nav-item active" data-view="dashboard" id="nav-dashboard">
+          <div class="nav-icon">📊</div>
+          <span>Tablero de Control</span>
+        </a>
+        <a class="nav-item" data-view="work-orders" id="nav-work-orders">
+          <div class="nav-icon">🚘</div>
+          <span>Órdenes de Trabajo</span>
+          <span class="nav-badge danger" id="badge-delayed-count" style="display:none;">0</span>
+        </a>
+        <a class="nav-item" data-view="quotations" id="nav-quotations">
+          <div class="nav-icon">📋</div>
+          <span>Cotizador & Partidas</span>
+        </a>
+
+        <div class="nav-section-title">Finanzas & Fiscal</div>
+        <a class="nav-item" data-view="commercial-close" id="nav-commercial-close">
+          <div class="nav-icon">🔒</div>
+          <span>Cierre Comercial</span>
+        </a>
+        <a class="nav-item" data-view="invoicing" id="nav-invoicing">
+          <div class="nav-icon">🧾</div>
+          <span>Facturación SAT</span>
+          <span class="nav-badge gold" id="badge-pending-invoice" style="display:none;">0</span>
+        </a>
+        <a class="nav-item" data-view="finance" id="nav-finance">
+          <div class="nav-icon">💰</div>
+          <span>Caja, Pagos & CxC</span>
+        </a>
+
+        <div class="nav-section-title">Almacén & Catálogos</div>
+        <a class="nav-item" data-view="inventory" id="nav-inventory">
+          <div class="nav-icon">📦</div>
+          <span>Inventario & Almacén</span>
+          <span class="nav-badge danger" id="badge-low-stock" style="display:none;">0</span>
+        </a>
+        <a class="nav-item" data-view="services" id="nav-services">
+          <div class="nav-icon">🔧</div>
+          <span>Catálogo de Servicios</span>
+        </a>
+        <a class="nav-item" data-view="crm" id="nav-crm">
+          <div class="nav-icon">👥</div>
+          <span>Clientes & Autos</span>
+        </a>
+
+        <div class="nav-section-title">Administración</div>
+        <a class="nav-item" data-view="users" id="nav-users">
+          <div class="nav-icon">🛡️</div>
+          <span>Personal & Accesos</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-snippet" id="user-profile-trigger">
+          <div class="user-avatar" id="sidebar-user-avatar">A</div>
+          <div class="user-details">
+            <span class="user-name" id="sidebar-user-name">Admin Principal</span>
+            <span class="user-role" id="sidebar-user-role">ADMINISTRADOR</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN WRAPPER ==================== -->
+    <div class="main-wrapper">
+      
+      <!-- Top Sticky Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <div class="page-title-wrap">
+            <h1 class="page-title" id="page-title-heading">Tablero de Control</h1>
+            <span class="page-breadcrumbs" id="page-breadcrumb-text">ERP Automotriz / Resumen General</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Backend Status Pill -->
+          <div class="connection-pill offline" id="connection-status-pill" title="Clic para configurar la URL del servidor">
+            <span class="status-dot offline" id="connection-status-dot"></span>
+            <span id="connection-status-text">Modo Demo Local</span>
+          </div>
+
+          <!-- Quick Action -->
+          <button class="btn btn-primary" id="btn-quick-new-wo">
+            <span>+</span> Nueva Recepción
+          </button>
+
+          <!-- User Menu Trigger -->
+          <button class="btn btn-secondary btn-sm" id="btn-switch-user" title="Cambiar usuario o sesión">
+            Cambiar Rol
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Body Container -->
+      <main class="content-body">
+
+        <!-- ==================== VIEW 1: DASHBOARD ==================== -->
+        <section id="view-dashboard" class="view-pane active">
+          <!-- Stat Grid -->
+          <div class="stat-grid">
+            <div class="stat-card gold">
+              <div class="stat-header">
+                <span class="stat-label">Órdenes Activas</span>
+                <div class="stat-icon-wrap gold">🚘</div>
+              </div>
+              <div class="stat-value" id="kpi-active-wo">0</div>
+              <div class="stat-footer">
+                <span class="text-gold" id="kpi-in-repair">0</span> en reparación técnica
+              </div>
+            </div>
+
+            <div class="stat-card crimson">
+              <div class="stat-header">
+                <span class="stat-label">Órdenes Retrasadas</span>
+                <div class="stat-icon-wrap crimson">⚠️</div>
+              </div>
+              <div class="stat-value text-crimson" id="kpi-delayed-wo">0</div>
+              <div class="stat-footer">
+                <span id="kpi-delayed-subtext">Requieren atención inmediata</span>
+              </div>
+            </div>
+
+            <div class="stat-card emerald">
+              <div class="stat-header">
+                <span class="stat-label">Ingresos del Mes</span>
+                <div class="stat-icon-wrap emerald">💵</div>
+              </div>
+              <div class="stat-value text-emerald" id="kpi-revenue-month">$0.00</div>
+              <div class="stat-footer">
+                Flujo neto en caja registrado
+              </div>
+            </div>
+
+            <div class="stat-card purple">
+              <div class="stat-header">
+                <span class="stat-label">Por Cobrar (CxC)</span>
+                <div class="stat-icon-wrap purple">⏳</div>
+              </div>
+              <div class="stat-value" id="kpi-receivables-balance">$0.00</div>
+              <div class="stat-footer">
+                <span id="kpi-open-cxc-count">0</span> cuentas con saldo activo
+              </div>
+            </div>
+
+            <div class="stat-card sapphire">
+              <div class="stat-header">
+                <span class="stat-label">Stock Crítico</span>
+                <div class="stat-icon-wrap sapphire">📦</div>
+              </div>
+              <div class="stat-value" id="kpi-low-stock-count">0</div>
+              <div class="stat-footer">
+                Artículos bajo el nivel mínimo
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Access Cards & Summary -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Órdenes de Trabajo en Curso</h3>
+                  <span class="card-subtitle">Monitoreo del pipeline operativo de vehículos</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="STATE.setView('work-orders')">Ver Todas</button>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Folio</th>
+                      <th>Cliente</th>
+                      <th>Vehículo</th>
+                      <th>Estado</th>
+                      <th>Entrega</th>
+                      <th>Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboard-recent-wo-table">
+                    <!-- Populated via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Invoicing Alert & Quick Cash -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+              <div class="card" style="border-color: var(--amber-border);">
+                <div class="card-header">
+                  <div class="card-title-group">
+                    <h3 class="card-title">Bandeja Fiscal SAT</h3>
+                    <span class="card-subtitle">CFDI 4.0 pendientes</span>
+                  </div>
+                  <span class="badge badge-gold" id="dash-pending-inv-badge">0 pendientes</span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+                  Órdenes con cierre confirmado que requieren emisión de factura o validación de RFC/Régimen.
+                </p>
+                <button class="btn btn-secondary btn-sm" onclick="STATE.setView('invoicing')">
+                  Gestionar Facturación
+                </button>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title-group">
+                    <h3 class="card-title">Caja Chica Rápida</h3>
+                    <span class="card-subtitle">Registrar movimiento operativo</span>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                  <button class="btn btn-success btn-sm" style="flex: 1;" onclick="STATE.openModal('modal-cash-movement'); document.getElementById('cm-type').value='INCOME'">+ Ingreso</button>
+                  <button class="btn btn-danger btn-sm" style="flex: 1;" onclick="STATE.openModal('modal-cash-movement'); document.getElementById('cm-type').value='EXPENSE'">- Gasto</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 2: WORK ORDERS ==================== -->
+        <section id="view-work-orders" class="view-pane">
+          <div class="card">
+            <div class="filter-bar">
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="input" id="search-wo" placeholder="Buscar folio, placa, cliente...">
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <select class="select" id="filter-wo-status" style="width: 200px;">
+                  <option value="">Todos los Estados</option>
+                  <!-- Populated by JS with 11 operational statuses -->
+                </select>
+
+                <label class="checkbox-label" style="background: var(--bg-surface); padding: 8px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                  <input type="checkbox" id="filter-wo-delayed">
+                  <span class="checkbox-custom">✓</span>
+                  <span>Solo Retrasadas</span>
+                </label>
+
+                <div class="btn-group" style="display: flex; gap: 4px;">
+                  <button class="btn btn-secondary btn-sm active" id="btn-view-kanban">Kanban</button>
+                  <button class="btn btn-secondary btn-sm" id="btn-view-table">Tabla</button>
+                </div>
+
+                <button class="btn btn-primary" onclick="STATE.openModal('modal-new-work-order')">
+                  + Nueva Orden
+                </button>
+              </div>
+            </div>
+
+            <!-- Kanban View Container -->
+            <div id="wo-kanban-container" class="kanban-board">
+              <!-- Columns dynamically rendered by JS -->
+            </div>
+
+            <!-- Table View Container -->
+            <div id="wo-table-container" class="table-responsive" style="display: none;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Folio</th>
+                    <th>Cliente</th>
+                    <th>Vehículo / Placa</th>
+                    <th>Falla Reportada</th>
+                    <th>Estado Operativo</th>
+                    <th>Comercial</th>
+                    <th>Entrega Estimada</th>
+                    <th>Retrasada</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="wo-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 3: QUOTATIONS ==================== -->
+        <section id="view-quotations" class="view-pane">
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h3 class="card-title">Gestión de Cotizaciones y Presupuestos</h3>
+                <span class="card-subtitle">Presupuesto interactivo con aprobación por línea (RF-17 a RF-21)</span>
+              </div>
+
+              <!-- Selector de Orden de Trabajo activa para cotizar -->
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <label class="form-label" style="margin: 0;">Seleccionar Orden:</label>
+                <select class="select" id="select-quote-wo" style="width: 280px;">
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+            </div>
+
+            <div id="quotation-detail-wrap">
+              <!-- Header info of selected quotation -->
+              <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 14px 18px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                <div>
+                  <span style="color: var(--text-muted); font-size: 0.8rem;">Vehículo y Cliente:</span>
+                  <div style="font-weight: 600; font-size: 1rem; color: #fff;" id="quote-header-info">Seleccione una orden</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span id="quote-approval-badge" class="badge badge-neutral">PENDIENTE</span>
+                  <button class="btn btn-secondary btn-sm" id="btn-add-service-line">+ Agregar Servicio</button>
+                  <button class="btn btn-secondary btn-sm" id="btn-add-part-line">+ Agregar Refacción</button>
+                </div>
+              </div>
+
+              <!-- Lines Table -->
+              <div class="table-responsive" style="margin-bottom: 20px;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>Concepto</th>
+                      <th>Cantidad</th>
+                      <th>P. Unitario</th>
+                      <th>P. Final</th>
+                      <th>Aprobación Cliente</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="quote-lines-body">
+                    <!-- Lines rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Summary & Discounts Panel -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                <!-- Discount & Tax Configuration -->
+                <div class="card" style="background: var(--bg-surface);">
+                  <h4 style="margin-bottom: 14px; font-size: 0.95rem;">Descuento Global & Impuestos (IVA 16%)</h4>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Tipo de Descuento</label>
+                      <select class="select" id="quote-discount-type">
+                        <option value="PERCENT">Porcentaje (%)</option>
+                        <option value="FIXED">Monto Fijo ($)</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Valor del Descuento</label>
+                      <input type="number" step="0.01" class="input" id="quote-discount-val" value="0.00">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="checkbox-label">
+                      <input type="checkbox" id="quote-apply-iva" checked>
+                      <span class="checkbox-custom">✓</span>
+                      <span>Aplicar IVA (16%) en campo separado</span>
+                    </label>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" id="btn-save-quote-discount">Guardar Configuración de Descuento</button>
+                </div>
+
+                <!-- Financial Calculation Breakdown -->
+                <div class="quote-summary-box">
+                  <div class="quote-row">
+                    <span>Subtotal de Partidas:</span>
+                    <span class="font-mono" id="lbl-quote-subtotal">$0.00</span>
+                  </div>
+                  <div class="quote-row">
+                    <span>Descuento Otorgado:</span>
+                    <span class="font-mono text-crimson" id="lbl-quote-discount">-$0.00</span>
+                  </div>
+                  <div class="quote-row">
+                    <span>Base Gravable:</span>
+                    <span class="font-mono" id="lbl-quote-taxbase">$0.00</span>
+                  </div>
+                  <div class="quote-row">
+                    <span>IVA (16%):</span>
+                    <span class="font-mono" id="lbl-quote-iva">$0.00</span>
+                  </div>
+                  <div class="quote-row total">
+                    <span>Total Presupuestado:</span>
+                    <span class="amount" id="lbl-quote-total">$0.00</span>
+                  </div>
+
+                  <div style="margin-top: 10px; display: flex; gap: 10px;">
+                    <button class="btn btn-primary" style="flex: 1;" id="btn-open-approval-modal">
+                      Registrar Aprobación Cliente
+                    </button>
+                    <button class="btn btn-secondary" onclick="STATE.setView('commercial-close', { workOrderId: STATE.selectedWorkOrderId })">
+                      Ir a Cierre Comercial
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 4: COMMERCIAL CLOSE ==================== -->
+        <section id="view-commercial-close" class="view-pane">
+          <div class="card" style="max-width: 860px; margin: 0 auto;">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h3 class="card-title">Cierre Comercial de la Orden (ADR-11 / RF-22)</h3>
+                <span class="card-subtitle">Congela el monto total definitivo, crea la CxC y resuelve estado fiscal</span>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-surface); padding: 18px; border-radius: var(--radius-md); margin-bottom: 20px;">
+              <div class="form-group">
+                <label class="form-label">Seleccionar Orden de Trabajo para Cierre Comercial:</label>
+                <select class="select" id="select-close-wo">
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+
+              <div id="close-wo-preview" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 14px; padding: 14px; background: rgba(0,0,0,0.25); border-radius: 8px;">
+                <div>
+                  <span class="text-muted" style="font-size: 0.75rem;">Total Cotizado Aprobado:</span>
+                  <div class="font-mono text-gold" style="font-size: 1.15rem; font-weight: 700;" id="close-frozen-preview">$0.00</div>
+                </div>
+                <div>
+                  <span class="text-muted" style="font-size: 0.75rem;">Anticipos Pagados:</span>
+                  <div class="font-mono text-emerald" style="font-size: 1.15rem; font-weight: 700;" id="close-advances-preview">$0.00</div>
+                </div>
+                <div>
+                  <span class="text-muted" style="font-size: 0.75rem;">Saldo Insoluto a Cobrar:</span>
+                  <div class="font-mono" style="font-size: 1.15rem; font-weight: 700;" id="close-balance-preview">$0.00</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label" style="font-weight: 600; font-size: 1rem; color: #fff;">
+                <input type="checkbox" id="close-requires-invoice" checked>
+                <span class="checkbox-custom">✓</span>
+                <span>El cliente requiere comprobante fiscal / Factura interna (SAT)</span>
+              </label>
+              <span class="text-muted" style="font-size: 0.8rem; margin-left: 28px;">
+                Si se marca, el sistema enviará la orden a la bandeja de facturación (PENDIENTE_DATOS o LISTA_PARA_FACTURAR).
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Notas u Observaciones del Cierre Comercial</label>
+              <textarea class="textarea" id="close-notes" placeholder="Ej: Trabajo entregado a conformidad del cliente. Autorizó cierre..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+              <button class="btn btn-secondary" onclick="STATE.setView('work-orders')">Cancelar</button>
+              <button class="btn btn-primary btn-lg" id="btn-confirm-commercial-close">
+                Confirmar Cierre Comercial Atómico
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 5: INVOICING (FACTURACIÓN SAT) ==================== -->
+        <section id="view-invoicing" class="view-pane">
+          <!-- Subtabs: Bandeja Pendiente vs Facturas Emitidas -->
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="invoicing-pending">Bandeja de Facturación Pendiente</button>
+            <button class="tab-btn" data-tab="invoicing-history">Histórico de Facturas Emitidas</button>
+          </div>
+
+          <!-- Tab 1: Pending Queue -->
+          <div id="tab-invoicing-pending" class="invoicing-subtab">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Bandeja de Facturación (Diagnóstico Fiscal)</h3>
+                  <span class="card-subtitle">Órdenes con cierre comercial que solicitan factura CFDI 4.0</span>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Orden</th>
+                      <th>Cliente</th>
+                      <th>Estatus Fiscal</th>
+                      <th>Diagnóstico SAT (Faltantes)</th>
+                      <th>Importe Total</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="invoicing-pending-body">
+                    <!-- Rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Emitted Invoices -->
+          <div id="tab-invoicing-history" class="invoicing-subtab" style="display: none;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Facturas Emitidas & Canceladas</h3>
+                  <span class="card-subtitle">Snapshots fiscales inmutables con folio consecutivo</span>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Folio</th>
+                      <th>Fecha</th>
+                      <th>Receptor (RFC)</th>
+                      <th>Razón Social</th>
+                      <th>Subtotal</th>
+                      <th>IVA</th>
+                      <th>Total</th>
+                      <th>Estado</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="invoicing-history-body">
+                    <!-- Rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 6: FINANCE & PAYMENTS ==================== -->
+        <section id="view-finance" class="view-pane">
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="finance-receivables">Cuentas por Cobrar (CxC)</button>
+            <button class="tab-btn" data-tab="finance-cash">Flujo de Caja & Movimientos</button>
+            <button class="tab-btn" data-tab="finance-report">Reporte Financiero Consolidado</button>
+          </div>
+
+          <!-- Tab 1: Receivables -->
+          <div id="tab-finance-receivables" class="finance-subtab">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Cartera de Cuentas por Cobrar (CxC)</h3>
+                  <span class="card-subtitle">Saldos deudores generados por cierre comercial (RF-23 a RF-25)</span>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="STATE.openModal('modal-new-payment')">
+                  + Registrar Pago o Anticipo
+                </button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Orden</th>
+                      <th>Cliente</th>
+                      <th>Monto Original</th>
+                      <th>Total Cobrado</th>
+                      <th>Saldo Insoluto</th>
+                      <th>Estatus</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="receivables-table-body">
+                    <!-- Rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Cash Movements -->
+          <div id="tab-finance-cash" class="finance-subtab" style="display: none;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Libro de Flujo de Caja</h3>
+                  <span class="card-subtitle">Entradas por cobros (neto tras comisiones de terminal) y egresos manuales</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="STATE.openModal('modal-cash-movement')">
+                  + Movimiento Manual
+                </button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha / Hora</th>
+                      <th>Tipo</th>
+                      <th>Concepto / Referencia</th>
+                      <th>Monto</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cash-movements-table-body">
+                    <!-- Rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Financial Report -->
+          <div id="tab-finance-report" class="finance-subtab" style="display: none;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Reporte Financiero Agregado (SQL Directo)</h3>
+                  <span class="card-subtitle">Separación de venta bruta, IVA, descuentos y comisiones bancarias</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="btn-refresh-financial-report">Actualizar Reporte</button>
+              </div>
+
+              <div class="stat-grid" style="margin-top: 10px;">
+                <div class="stat-card gold">
+                  <div class="stat-label">Ventas Brutas</div>
+                  <div class="stat-value font-mono" id="rpt-gross-sales">$0.00</div>
+                </div>
+                <div class="stat-card crimson">
+                  <div class="stat-label">Descuentos Concedidos</div>
+                  <div class="stat-value font-mono text-crimson" id="rpt-discounts">-$0.00</div>
+                </div>
+                <div class="stat-card sapphire">
+                  <div class="stat-label">IVA Recaudado (16%)</div>
+                  <div class="stat-value font-mono text-sapphire" id="rpt-iva">$0.00</div>
+                </div>
+                <div class="stat-card purple">
+                  <div class="stat-label">Comisiones Terminal Banco</div>
+                  <div class="stat-value font-mono text-crimson" id="rpt-commissions">-$0.00</div>
+                </div>
+                <div class="stat-card emerald">
+                  <div class="stat-label">Flujo Neto en Caja</div>
+                  <div class="stat-value font-mono text-emerald" id="rpt-net-flow">$0.00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 7: INVENTORY, TOOLS & CUSTODY ==================== -->
+        <section id="view-inventory" class="view-pane">
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="inv-articles">Refacciones & Consumibles</button>
+            <button class="tab-btn" data-tab="inv-tools">Herramientas & Equipos</button>
+            <button class="tab-btn" data-tab="inv-custody">Piezas en Custodia</button>
+            <button class="tab-btn" data-tab="inv-suppliers">Proveedores & Pedidos Especiales</button>
+          </div>
+
+          <!-- Articles -->
+          <div id="tab-inv-articles" class="inv-subtab">
+            <div class="card">
+              <div class="filter-bar">
+                <div class="search-box">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" class="input" id="search-inventory" placeholder="Buscar código, nombre, marca...">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                  <button class="btn btn-secondary btn-sm" id="btn-filter-low-stock">Ver Solo Stock Bajo</button>
+                  <button class="btn btn-secondary btn-sm" onclick="STATE.openModal('modal-stock-movement')">Registrar Movimiento</button>
+                  <button class="btn btn-primary btn-sm" onclick="STATE.openModal('modal-new-article')">+ Nuevo Artículo</button>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Artículo</th>
+                      <th>Tipo</th>
+                      <th>Marca</th>
+                      <th>Costo</th>
+                      <th>Precio Venta</th>
+                      <th>Existencias</th>
+                      <th>Mínimo</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="inventory-articles-body">
+                    <!-- Rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tools -->
+          <div id="tab-inv-tools" class="inv-subtab" style="display: none;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Herramientas y Equipamiento de Taller</h3>
+                  <span class="card-subtitle">Activos con número de serie y técnico asignado</span>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="STATE.openModal('modal-new-tool')">+ Nueva Herramienta</button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Herramienta</th>
+                      <th>N° Serie</th>
+                      <th>Marca / Modelo</th>
+                      <th>Condición</th>
+                      <th>Estatus</th>
+                      <th>Ubicación</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tools-table-body">
+                    <!-- Rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Custody -->
+          <div id="tab-inv-custody" class="inv-subtab" style="display: none;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Piezas y Pertenencias en Custodia</h3>
+                  <span class="card-subtitle">Resguardo temporal de piezas usadas o pertenencias del cliente</span>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="STATE.openModal('modal-new-custody')">+ Registrar Custodia</button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Orden</th>
+                      <th>Descripción de la Pieza</th>
+                      <th>Cantidad</th>
+                      <th>Condición</th>
+                      <th>Ubicación</th>
+                      <th>Estado</th>
+                      <th>Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody id="custody-table-body">
+                    <!-- Rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Suppliers & Special Orders -->
+          <div id="tab-inv-suppliers" class="inv-subtab" style="display: none;">
+            <div class="card" style="margin-bottom: 24px;">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Proveedores de Refacciones</h3>
+                  <span class="card-subtitle">Directorio de proveedores mayoristas</span>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="STATE.openModal('modal-new-supplier')">+ Nuevo Proveedor</button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Contacto</th>
+                      <th>Teléfono</th>
+                      <th>Email</th>
+                      <th>RFC</th>
+                      <th>Notas</th>
+                    </tr>
+                  </thead>
+                  <tbody id="suppliers-table-body">
+                    <!-- Rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 8: SERVICES & PRICES ==================== -->
+        <section id="view-services" class="view-pane">
+          <div class="card">
+            <div class="filter-bar">
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="input" id="search-services" placeholder="Buscar mano de obra, categoría...">
+              </div>
+              <button class="btn btn-primary" onclick="STATE.openModal('modal-new-service')">
+                + Nuevo Servicio
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Concepto de Mano de Obra</th>
+                    <th>Categoría</th>
+                    <th>Tiempo Est.</th>
+                    <th>Precio Auto</th>
+                    <th>Precio Camioneta</th>
+                    <th>Precio Pesado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="services-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 9: CRM (CLIENTS & VEHICLES) ==================== -->
+        <section id="view-crm" class="view-pane">
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="crm-clients">Directorio de Clientes</button>
+            <button class="tab-btn" data-tab="crm-vehicles">Padrón Vehicular</button>
+          </div>
+
+          <!-- Clients -->
+          <div id="tab-crm-clients" class="crm-subtab">
+            <div class="card">
+              <div class="filter-bar">
+                <div class="search-box">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" class="input" id="search-clients" placeholder="Buscar nombre, RFC, teléfono...">
+                </div>
+                <button class="btn btn-primary" onclick="STATE.openModal('modal-new-client')">
+                  + Nuevo Cliente
+                </button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>Tipo</th>
+                      <th>Teléfono</th>
+                      <th>Email</th>
+                      <th>Segmento</th>
+                      <th>Deuda</th>
+                      <th>RFC</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="clients-table-body">
+                    <!-- Rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vehicles -->
+          <div id="tab-crm-vehicles" class="crm-subtab" style="display: none;">
+            <div class="card">
+              <div class="filter-bar">
+                <div class="search-box">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" class="input" id="search-vehicles" placeholder="Buscar placa, VIN, marca...">
+                </div>
+                <button class="btn btn-primary" onclick="STATE.openModal('modal-new-vehicle')">
+                  + Registrar Vehículo
+                </button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Placa</th>
+                      <th>Marca y Modelo</th>
+                      <th>Año</th>
+                      <th>VIN</th>
+                      <th>Tipo</th>
+                      <th>Color</th>
+                      <th>Kilometraje</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vehicles-table-body">
+                    <!-- Rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 10: USERS & PERMISSIONS ==================== -->
+        <section id="view-users" class="view-pane">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h3 class="card-title">Personal del Taller y Control de Accesos (RBAC)</h3>
+                <span class="card-subtitle">Administración de usuarios, roles y permisos granulares</span>
+              </div>
+              <button class="btn btn-primary" onclick="STATE.openModal('modal-new-user')">
+                + Nuevo Empleado
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Título KPI</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== MODALS CONTAINER ==================== -->
+
+  <!-- Modal: Nueva Recepción de Orden de Trabajo -->
+  <div class="modal-backdrop" id="modal-new-work-order">
+    <div class="modal-dialog lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Recepción de Vehículo — Nueva Orden de Trabajo</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-new-work-order')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-new-work-order">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Cliente <span class="required">*</span></label>
+              <select class="select" id="new-wo-client" required>
+                <!-- Populated by JS -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vehículo Vinculado <span class="required">*</span></label>
+              <select class="select" id="new-wo-vehicle" required>
+                <!-- Populated by JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Descripción de la Falla o Solicitud del Cliente <span class="required">*</span></label>
+            <textarea class="textarea" id="new-wo-failure" placeholder="Detallar síntomas, ruidos, testigos en tablero..." required></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Kilometraje de Entrada</label>
+              <input type="number" class="input" id="new-wo-mileage" value="50000" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fecha Estimada de Entrega</label>
+              <input type="datetime-local" class="input" id="new-wo-delivery">
+            </div>
+          </div>
+
+          <!-- Fuel Meter Interactive Widget -->
+          <div class="fuel-meter-container">
+            <div class="fuel-gauge-display">
+              <span class="form-label" style="margin: 0;">Nivel de Combustible al Ingreso:</span>
+              <span class="font-mono text-gold" style="font-size: 1.1rem; font-weight: 700;" id="fuel-display-val">50%</span>
+            </div>
+            <div class="fuel-gauge-track">
+              <div class="fuel-gauge-fill" id="fuel-gauge-bar" style="width: 50%;"></div>
+            </div>
+            <div class="fuel-gauge-ticks">
+              <span>E (Vacío)</span>
+              <span>1/4</span>
+              <span>1/2</span>
+              <span>3/4</span>
+              <span>F (Lleno)</span>
+            </div>
+            <input type="range" min="0" max="100" value="50" class="input" id="new-wo-fuel-slider" style="padding: 0; height: 18px; accent-color: var(--gold-400);">
+          </div>
+
+          <!-- Checklist Físico de Recepción -->
+          <div style="margin-top: 20px;">
+            <label class="form-label">Checklist de Inventario del Vehículo (RF-11)</label>
+            <div class="checklist-grid">
+              <label class="checklist-item checked" id="chk-item-keys">
+                <input type="checkbox" id="chk-keys" checked>
+                <span class="checkbox-custom">✓</span>
+                <span>Llaves del Auto</span>
+              </label>
+              <label class="checklist-item checked" id="chk-item-spare">
+                <input type="checkbox" id="chk-spare" checked>
+                <span class="checkbox-custom">✓</span>
+                <span>Llanta de Refacción</span>
+              </label>
+              <label class="checklist-item checked" id="chk-item-jack">
+                <input type="checkbox" id="chk-jack" checked>
+                <span class="checkbox-custom">✓</span>
+                <span>Gato Hidráulico</span>
+              </label>
+              <label class="checklist-item" id="chk-item-tools">
+                <input type="checkbox" id="chk-tools">
+                <span class="checkbox-custom">✓</span>
+                <span>Herramientas Básicas</span>
+              </label>
+              <label class="checklist-item" id="chk-item-extinguisher">
+                <input type="checkbox" id="chk-extinguisher">
+                <span class="checkbox-custom">✓</span>
+                <span>Extintor de Fuego</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 14px;">
+            <label class="form-label">Pertenencias Personales Declaradas</label>
+            <input type="text" class="input" id="new-wo-personal-items" placeholder="Ej: Lentes, cables USB, documentos en guantera...">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-new-work-order')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-submit-new-wo">Registrar Entrada</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Detalle Completo de Orden de Trabajo (FSM, Notas, Fotos) -->
+  <div class="modal-backdrop" id="modal-wo-detail">
+    <div class="modal-dialog xl">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="modal-wo-code">OT-0001</h3>
+          <span class="text-muted" style="font-size: 0.8rem;" id="modal-wo-subtitle">Detalle del Agregado de Orden de Trabajo</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-toggle-wo-delayed">Marcar Retrasada</button>
+          <button class="btn-ghost" onclick="STATE.closeModal('modal-wo-detail')">✕</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <!-- FSM Operational Stepper -->
+        <div style="background: var(--bg-surface); padding: 14px; border-radius: var(--radius-md); margin-bottom: 20px;">
+          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--gold-400); margin-bottom: 8px;">
+            Máquina de Estados Operativos (FSM Estricta de 11 Estados)
+          </div>
+          <div class="fsm-pipeline" id="modal-fsm-stepper">
+            <!-- Stepper steps generated by JS -->
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.85rem;">
+              Estado Actual: <strong id="modal-wo-current-status-lbl" class="text-gold">RECIBIDA</strong>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <select class="select" id="select-next-status" style="width: 220px;">
+                <!-- Next allowed transitions -->
+              </select>
+              <button class="btn btn-primary btn-sm" id="btn-advance-status">Avanzar Estado</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail Subtabs -->
+        <div class="tabs-nav" style="margin-bottom: 16px;">
+          <button class="tab-btn active" data-tab="wo-tab-info">Recepción & Checklist</button>
+          <button class="tab-btn" data-tab="wo-tab-notes">Bitácora de Notas</button>
+          <button class="tab-btn" data-tab="wo-tab-photos">Fotos & Evidencia</button>
+          <button class="tab-btn" data-tab="wo-tab-portal">Portal Público Cliente</button>
+        </div>
+
+        <!-- Tab: Info & Checklist -->
+        <div id="wo-tab-info" class="wo-subpane">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="card" style="background: var(--bg-surface);">
+              <h4 style="font-size: 0.9rem; margin-bottom: 12px;">Datos de Vehículo y Cliente</h4>
+              <p><strong>Cliente:</strong> <span id="modal-wo-client-name">—</span></p>
+              <p><strong>Vehículo:</strong> <span id="modal-wo-vehicle-desc">—</span></p>
+              <p><strong>Placas:</strong> <span class="font-mono text-gold" id="modal-wo-plates">—</span></p>
+              <p><strong>Kilometraje:</strong> <span id="modal-wo-mileage">—</span> km</p>
+              <p><strong>Combustible:</strong> <span id="modal-wo-fuel">—</span>%</p>
+            </div>
+
+            <div class="card" style="background: var(--bg-surface);">
+              <h4 style="font-size: 0.9rem; margin-bottom: 12px;">Falla Reportada e Inventario</h4>
+              <p><strong>Motivo:</strong> <span id="modal-wo-failure-desc">—</span></p>
+              <p><strong>Pertenencias:</strong> <span id="modal-wo-personal-items">—</span></p>
+              <div id="modal-wo-checklist-summary" style="margin-top: 10px; font-size: 0.82rem;">
+                <!-- Check summary -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Notes -->
+        <div id="wo-tab-notes" class="wo-subpane" style="display: none;">
+          <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px;">
+            <div class="form-group">
+              <label class="form-label">Nueva Nota de Avance Técnico</label>
+              <textarea class="textarea" id="new-note-content" placeholder="Escriba el reporte o actualización..."></textarea>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="checkbox-label">
+                <input type="checkbox" id="new-note-client-visible">
+                <span class="checkbox-custom">✓</span>
+                <span>Visible al cliente en portal público</span>
+              </label>
+              <button class="btn btn-secondary btn-sm" id="btn-submit-note">Agregar Nota</button>
+            </div>
+          </div>
+
+          <div class="notes-timeline" id="modal-wo-notes-feed">
+            <!-- Notes feed -->
+          </div>
+        </div>
+
+        <!-- Tab: Photos -->
+        <div id="wo-tab-photos" class="wo-subpane" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <span class="text-secondary" style="font-size: 0.85rem;">Evidencias fotográficas organizadas por fase técnica</span>
+            <button class="btn btn-secondary btn-sm" id="btn-add-photo-trigger">+ Subir Foto</button>
+          </div>
+          <div class="photos-grid" id="modal-wo-photos-grid">
+            <!-- Photos rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Tab: Portal Público -->
+        <div id="wo-tab-portal" class="wo-subpane" style="display: none;">
+          <div class="card" style="background: var(--bg-surface); text-align: center; padding: 32px;">
+            <h3 style="margin-bottom: 10px;">Token de Consulta Pública (RF-12)</h3>
+            <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 20px;">
+              Este identificador único permite al cliente rastrear el estado de su vehículo en tiempo real sin requerir contraseña.
+            </p>
+            <div style="background: rgba(0,0,0,0.4); padding: 12px 18px; border-radius: var(--radius-md); display: inline-flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+              <code class="font-mono text-gold" id="modal-portal-token-val">token-uuid-1234</code>
+              <button class="btn btn-secondary btn-sm" id="btn-copy-portal-token">Copiar Enlace</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-wo-detail')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Agregar Partida a Cotización -->
+  <div class="modal-backdrop" id="modal-add-quote-line">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-quote-line-title">Agregar Partida a Cotización</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-add-quote-line')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-add-quote-line">
+          <input type="hidden" id="quote-line-type" value="SERVICE">
+          
+          <div class="form-group" id="group-quote-service">
+            <label class="form-label">Servicio / Mano de Obra</label>
+            <select class="select" id="quote-select-service">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <div class="form-group" id="group-quote-part" style="display: none;">
+            <label class="form-label">Refacción del Inventario</label>
+            <select class="select" id="quote-select-part">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Concepto Personalizado (Opcional)</label>
+            <input type="text" class="input" id="quote-line-concept" placeholder="Dejar vacío para usar nombre del catálogo">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Cantidad</label>
+              <input type="number" min="1" step="1" class="input" id="quote-line-qty" value="1" required>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-add-quote-line')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-submit-quote-line">Agregar Partida</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Override de Precio con Motivo Obligatorio (RF-20) -->
+  <div class="modal-backdrop" id="modal-price-override">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Ajuste de Precio (Price Override)</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-price-override')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 16px;">
+          Este cambio modifica únicamente el precio final en esta cotización y genera un registro de auditoría inmutable sin alterar el catálogo general.
+        </p>
+        <input type="hidden" id="override-line-id">
+        <div class="form-group">
+          <label class="form-label">Nuevo Precio Unitario Final ($) <span class="required">*</span></label>
+          <input type="number" step="0.01" class="input font-mono" id="override-price-val" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Justificación o Motivo Obligatorio <span class="required">*</span></label>
+          <textarea class="textarea" id="override-reason" placeholder="Ej: Descuento especial por paquete promocional autorizado por dirección..." required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-price-override')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-submit-override">Aplicar Ajuste</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Aprobación Línea por Línea (RF-18 / RF-19) -->
+  <div class="modal-backdrop" id="modal-approve-quote">
+    <div class="modal-dialog lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Aprobación Granular del Cliente por Partida</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-approve-quote')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 16px;">
+          El cliente puede autorizar o rechazar partidas individualmente. Las partidas rechazadas se conservan inmutables para fines analíticos.
+        </p>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Partida</th>
+                <th>Importe</th>
+                <th>Decisión</th>
+                <th>Motivo de Rechazo (si aplica)</th>
+              </tr>
+            </thead>
+            <tbody id="quote-approval-lines-body">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-approve-quote')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-submit-approval">Registrar Respuestas del Cliente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Captura / Validación de Datos Fiscales SAT -->
+  <div class="modal-backdrop" id="modal-fiscal-data">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Actualizar Datos Fiscales (CFDI 4.0 SAT)</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-fiscal-data')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="fiscal-wo-id">
+        <div class="form-group">
+          <label class="form-label">RFC (Física 13, Moral 12 caracteres o XAXX010101000) <span class="required">*</span></label>
+          <input type="text" class="input font-mono" id="fiscal-rfc" placeholder="XAXX010101000" maxlength="13" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Razón Social o Nombre Fiscal <span class="required">*</span></label>
+          <input type="text" class="input" id="fiscal-name" placeholder="En mayúsculas, sin régimen societario" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Código Postal Fiscal (5 dígitos) <span class="required">*</span></label>
+            <input type="text" class="input font-mono" id="fiscal-zip" maxlength="5" placeholder="03100" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Régimen Fiscal SAT <span class="required">*</span></label>
+            <select class="select" id="fiscal-regime" required>
+              <!-- Populated by JS -->
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Uso de CFDI <span class="required">*</span></label>
+          <select class="select" id="fiscal-use" required>
+            <!-- Populated by JS -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="fiscal-apply-to-client" checked>
+            <span class="checkbox-custom">✓</span>
+            <span>Guardar como datos fiscales predeterminados en el expediente del cliente</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-fiscal-data')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-submit-fiscal-data">Validar y Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Emitir Factura Interna -->
+  <div class="modal-backdrop" id="modal-emit-invoice">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Emisión de Factura Interna (Folio FAC-XXXX)</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-emit-invoice')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="emit-wo-id">
+        <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 16px;">
+          Se generará un comprobante digital inmutable con snapshot de los datos del cliente, partidas aprobadas y folio correlativo del taller.
+        </p>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Método de Pago SAT</label>
+            <select class="select" id="emit-method-sat">
+              <option value="PUE">PUE - Pago en una sola exhibición</option>
+              <option value="PPD">PPD - Pago en parcialidades o diferido</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Forma de Pago SAT</label>
+            <select class="select" id="emit-form-sat">
+              <!-- Populated by JS with SAT payment forms -->
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas Adicionales en Factura</label>
+          <input type="text" class="input" id="emit-notes" placeholder="Factura correspondiente a servicio de mantenimiento...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-emit-invoice')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-submit-emit-invoice">Emitir Factura</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Visor Digital de Factura Emitida -->
+  <div class="modal-backdrop" id="modal-invoice-viewer">
+    <div class="modal-dialog lg" style="background: transparent; border: none; box-shadow: none;">
+      <div class="cfdi-preview-card" id="cfdi-card-content">
+        <!-- Rendered by JS -->
+      </div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 14px; gap: 10px;">
+        <button class="btn btn-secondary" onclick="window.print()">Imprimir Comprobante</button>
+        <button class="btn btn-primary" onclick="STATE.closeModal('modal-invoice-viewer')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Cancelar Factura Emitida -->
+  <div class="modal-backdrop" id="modal-cancel-invoice">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Cancelar Factura Interna</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-cancel-invoice')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="cancel-inv-id">
+        <div class="form-group">
+          <label class="form-label">Clave de Motivo de Cancelación SAT <span class="required">*</span></label>
+          <select class="select" id="cancel-sat-reason">
+            <!-- Populated by JS with 01, 02, 03, 04 -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Justificación Descriptiva <span class="required">*</span></label>
+          <textarea class="textarea" id="cancel-desc-reason" placeholder="Explicar motivo de cancelación..." required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-cancel-invoice')">Regresar</button>
+        <button class="btn btn-danger" id="btn-submit-cancel-invoice">Confirmar Cancelación</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Registrar Pago o Anticipo (RF-26 a RF-29) -->
+  <div class="modal-backdrop" id="modal-new-payment">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Registrar Cobro / Anticipo / Liquidación</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-new-payment')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Orden de Trabajo a Abonar</label>
+          <select class="select" id="pay-select-wo">
+            <!-- Populated by JS -->
+          </select>
+        </div>
+
+        <div style="background: var(--bg-surface); padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-between;">
+          <span class="text-muted">Saldo Pendiente:</span>
+          <span class="font-mono text-gold" style="font-weight: 700;" id="pay-pending-balance">$0.00</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tipo de Pago</label>
+            <select class="select" id="pay-type">
+              <option value="ADVANCE">Anticipo</option>
+              <option value="FINAL_SETTLEMENT">Liquidación Final</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Método de Pago</label>
+            <select class="select" id="pay-method">
+              <option value="CASH">Efectivo</option>
+              <option value="CARD">Tarjeta (Terminal Bancaria)</option>
+              <option value="TRANSFER">Transferencia SPEI</option>
+              <option value="CHECK">Cheque</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Monto Bruto a Amortizar ($) <span class="required">*</span></label>
+          <input type="number" step="0.01" class="input font-mono" id="pay-amount" required>
+        </div>
+
+        <!-- Terminal Commission Container (shown if CARD) -->
+        <div class="form-group" id="group-terminal-comm" style="display: none; background: rgba(245, 158, 11, 0.08); padding: 12px; border-radius: 8px; border: 1px solid var(--amber-border);">
+          <label class="form-label text-gold">Retención / Comisión Bancaria de Terminal ($)</label>
+          <input type="number" step="0.01" class="input font-mono" id="pay-terminal-comm" value="0.00">
+          <span class="text-muted" style="font-size: 0.75rem; margin-top: 4px; display: block;">
+            El cliente amortiza el monto total, pero a caja ingresa únicamente el importe neto deducida la comisión.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Referencia o Autorización</label>
+          <input type="text" class="input" id="pay-reference" placeholder="Ej: AUTH-491028 o folio de transferencia">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-new-payment')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-submit-payment">Registrar Cobro</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Movimiento Manual de Caja -->
+  <div class="modal-backdrop" id="modal-cash-movement">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Movimiento Manual de Caja Chica</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-cash-movement')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Tipo de Movimiento</label>
+          <select class="select" id="cm-type">
+            <option value="EXPENSE">Gasto / Egreso de Caja</option>
+            <option value="INCOME">Ingreso Extraordinario</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Monto ($)</label>
+          <input type="number" step="0.01" class="input font-mono" id="cm-amount" placeholder="0.00" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Concepto o Justificación</label>
+          <input type="text" class="input" id="cm-concept" placeholder="Ej: Compra de insumos de limpieza, café..." required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-cash-movement')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-submit-cash-movement">Registrar Movimiento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Alta de Cliente & Vehículo -->
+  <div class="modal-backdrop" id="modal-new-client">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Nuevo Cliente</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-new-client')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nombre Completo o Razón Social</label>
+            <input type="text" class="input" id="cli-name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo de Persona</label>
+            <select class="select" id="cli-type">
+              <option value="FISICA">Persona Física</option>
+              <option value="MORAL">Persona Moral</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Teléfono</label>
+            <input type="tel" class="input" id="cli-phone" placeholder="55 1234 5678" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Correo Electrónico</label>
+            <input type="email" class="input" id="cli-email" placeholder="cliente@correo.com" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">RFC (Opcional)</label>
+          <input type="text" class="input font-mono" id="cli-rfc" maxlength="13" placeholder="XAXX010101000">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-new-client')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-submit-new-client">Guardar Cliente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Registrar Vehículo (con VIN Lookup en Vivo) -->
+  <div class="modal-backdrop" id="modal-new-vehicle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Registrar Vehículo en Padrón</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-new-vehicle')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Cliente Propietario</label>
+          <select class="select" id="veh-client-id">
+            <!-- Populated by JS -->
+          </select>
+        </div>
+
+        <!-- VIN Lookup Toolbar -->
+        <div class="form-group" style="background: rgba(59, 130, 246, 0.08); padding: 12px; border-radius: 8px; border: 1px solid var(--sapphire-border);">
+          <label class="form-label text-sapphire">Número de Serie (VIN) con Decodificador Automático</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="input font-mono" id="veh-vin" placeholder="17 caracteres..." maxlength="17">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-lookup-vin">Decodificar VIN</button>
+          </div>
+          <span class="text-muted" style="font-size: 0.72rem; margin-top: 4px; display: block;">
+            Consulta la API del decodificador para autocompletar marca, modelo, año y tipo.
+          </span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Placa Vehicular <span class="required">*</span></label>
+            <input type="text" class="input font-mono" id="veh-plates" placeholder="PXZ-123-B" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo de Vehículo <span class="required">*</span></label>
+            <select class="select" id="veh-type">
+              <option value="AUTO">Sedán / Auto</option>
+              <option value="CAMIONETA">SUV / Camioneta</option>
+              <option value="CAMION">Pesado / Camión</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Marca</label>
+            <input type="text" class="input" id="veh-brand" placeholder="Nissan, Ford, etc.">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Modelo</label>
+            <input type="text" class="input" id="veh-model" placeholder="Sentra, F-150...">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Año</label>
+            <input type="number" class="input font-mono" id="veh-year" value="2022">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color</label>
+            <input type="text" class="input" id="veh-color" placeholder="Blanco, Gris...">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-new-vehicle')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-submit-new-vehicle">Guardar Vehículo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Configuración de Conexión de Servidor API -->
+  <div class="modal-backdrop" id="modal-api-config">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Conexión con el Backend NestJS</h3>
+        <button class="btn-ghost" onclick="STATE.closeModal('modal-api-config')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 16px;">
+          Configura la URL base del API REST de NestJS (por defecto: <code>http://localhost:3000/api/v1</code>).
+        </p>
+        <div class="form-group">
+          <label class="form-label">URL Base del API</label>
+          <input type="text" class="input font-mono" id="cfg-api-url" value="http://localhost:3000/api/v1">
+        </div>
+        <div style="background: var(--bg-surface); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Estado Actual del Servicio:</span>
+          <div id="cfg-connection-diagnostic" style="margin-top: 6px; font-weight: 600;">Comprobando...</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btn-test-connection">Probar Conexión Ahora</button>
+          <button class="btn btn-ghost btn-sm text-crimson" id="btn-reset-mock-db">Restablecer Datos Demo</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="STATE.closeModal('modal-api-config')">Cerrar</button>
+        <button class="btn btn-primary" id="btn-save-api-config">Guardar URL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+/* ==========================================================================
+   TALLER ERP — VIEW-SPECIFIC STYLES (FSM, FUEL METER, KANBAN, INVOICE, QUOTATION)
+   ========================================================================== */
+
+/* Fuel Meter Gauge Widget */
+.fuel-meter-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fuel-gauge-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fuel-gauge-track {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  position: relative;
+  overflow: hidden;
+  margin: 6px 0;
+}
+
+.fuel-gauge-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 35%, #10b981 100%);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fuel-gauge-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* FSM State Stepper / Pipeline */
+.fsm-pipeline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 14px 4px;
+  margin-bottom: 24px;
+}
+
+.fsm-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.fsm-step.completed {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: var(--emerald-400);
+}
+
+.fsm-step.current {
+  background: rgba(212, 149, 29, 0.18);
+  border-color: rgba(212, 149, 29, 0.45);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(212, 149, 29, 0.25);
+  font-weight: 700;
+}
+
+.fsm-step.current .fsm-dot {
+  background: var(--gold-400);
+  box-shadow: 0 0 8px var(--gold-400);
+}
+
+.fsm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.fsm-step.completed .fsm-dot {
+  background: var(--emerald-400);
+}
+
+.fsm-arrow {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* Kanban Board */
+.kanban-board {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 20px;
+  min-height: calc(100vh - 260px);
+}
+
+.kanban-col {
+  flex: 0 0 310px;
+  background: rgba(14, 19, 31, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 240px);
+}
+
+.kanban-col-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kanban-col-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kanban-col-count {
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+}
+
+.kanban-cards-wrap {
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.ot-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ot-card:hover {
+  border-color: rgba(212, 149, 29, 0.4);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.ot-card.delayed {
+  border-left: 3px solid var(--crimson-400);
+}
+
+.ot-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ot-code {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--gold-300);
+}
+
+.ot-client {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.ot-vehicle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ot-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Reception Checklist Visuals */
+.checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.checklist-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.checklist-item:hover {
+  background: var(--bg-surface-elevated);
+}
+
+.checklist-item.checked {
+  border-color: var(--gold-500);
+  background: rgba(212, 149, 29, 0.08);
+}
+
+/* Quotation Summary Card */
+.quote-summary-box {
+  background: linear-gradient(135deg, rgba(20, 27, 45, 0.95) 0%, rgba(14, 19, 31, 0.95) 100%);
+  border: 1px solid var(--border-highlight);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow-md);
+}
+
+.quote-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.quote-row.total {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-default);
+}
+
+.quote-row.total .amount {
+  color: var(--gold-300);
+  font-family: var(--font-display);
+}
+
+/* Invoice Digital Preview (CFDI 4.0 Layout) */
+.cfdi-preview-card {
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-luxe);
+  max-width: 820px;
+  margin: 0 auto;
+  font-family: var(--font-sans);
+}
+
+.cfdi-header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 18px;
+  margin-bottom: 20px;
+}
+
+.cfdi-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.cfdi-meta-table {
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.cfdi-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  font-size: 0.82rem;
+}
+
+.cfdi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-bottom: 20px;
+}
+
+.cfdi-table th {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.cfdi-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cfdi-stamp {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  word-break: break-all;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+/* Photo Gallery & Upload Dropzone */
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.photo-thumb-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 4/3;
+  display: flex;
+  flex-direction: column;
+}
+
+.photo-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-fast);
+}
+
+.photo-thumb-card:hover .photo-thumb-img {
+  transform: scale(1.05);
+}
+
+.photo-badge-category {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 0.68rem;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Notes Feed */
+.notes-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.note-bubble {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.note-bubble.client-visible {
+  border-left: 3px solid var(--emerald-400);
+}
+
+.note-bubble.internal {
+  border-left: 3px solid var(--amber-400);
+}
+
+.note-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
