@@ -263,11 +263,26 @@ export class FinanceService {
     query: FinancialReportQueryDto,
     actor: RequestUser,
   ): Promise<FinancialReportDto> {
+    let fromDate: Date | undefined;
+    let toDate: Date | undefined;
+
+    if (query.from) {
+      fromDate = query.from.includes('T')
+        ? new Date(query.from)
+        : new Date(`${query.from}T00:00:00.000Z`);
+    }
+
+    if (query.to) {
+      toDate = query.to.includes('T')
+        ? new Date(query.to)
+        : new Date(`${query.to}T23:59:59.999Z`);
+    }
+
     const dateFilter: Prisma.DateTimeFilter | undefined =
-      query.from || query.to
+      fromDate || toDate
         ? {
-            ...(query.from ? { gte: new Date(query.from) } : {}),
-            ...(query.to ? { lte: new Date(query.to) } : {}),
+            ...(fromDate ? { gte: fromDate } : {}),
+            ...(toDate ? { lte: toDate } : {}),
           }
         : undefined;
 
